@@ -48,7 +48,7 @@ export function Footer() {
             >
               CC BY-SA 4.0
             </a>
-            .
+            , modificato per aggiungere le vocali accentate.
           </p>
           <p className="mt-2">
             Progetto amatoriale non ufficiale, non affiliato a Wizards of the Coast. Dungeons &amp;
