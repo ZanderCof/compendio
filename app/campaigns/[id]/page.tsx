@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { Crown, Plus } from "lucide-react"
 
 import { AddCharacterToCampaign, InvitePanel } from "@/components/campaigns/campaignActions"
+import { RollLog } from "@/components/campaigns/rollLog"
 import { CharacterCard } from "@/components/characters/characterCard"
 import { SheetSection } from "@/components/characters/sheetSection"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getCampaignForMember } from "@/features/campaigns/queries"
 import { listCampaignCharacters, listMyCharacters } from "@/features/characters/queries"
+import { listCampaignRolls } from "@/features/rolls/queries"
 import { requireUser } from "@/lib/session"
 
 export const metadata: Metadata = { title: "Campagna · Compendio" }
@@ -33,9 +35,10 @@ async function CampaignLoader({ params }: { params: Params }) {
   const campaign = await getCampaignForMember(id, user.id)
   if (!campaign) notFound()
 
-  const [characters, myCharacters] = await Promise.all([
+  const [characters, myCharacters, rolls] = await Promise.all([
     listCampaignCharacters(campaign.id),
     listMyCharacters(user.id),
+    listCampaignRolls(campaign.id),
   ])
   const isMaster = campaign.role === "MASTER"
   const addable = myCharacters
@@ -105,6 +108,10 @@ async function CampaignLoader({ params }: { params: Params }) {
               <InvitePanel campaignId={campaign.id} inviteCode={campaign.inviteCode} />
             </SheetSection>
           )}
+
+          <SheetSection title="Registro dei tiri">
+            <RollLog campaignId={campaign.id} initial={rolls} />
+          </SheetSection>
 
           <SheetSection title="Membri">
             <ul className="flex flex-col gap-2">

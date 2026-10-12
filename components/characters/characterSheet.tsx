@@ -45,14 +45,17 @@ export function CharacterSheet({
   initial,
   access,
   requests,
+  inCampaign,
 }: {
   initial: Character
   access: CharacterAccess
   requests: EditRequestView[]
+  /** In campagna i tiri passano dal server e finiscono nel registro */
+  inCampaign: boolean
 }) {
   return (
     <CharacterProvider initial={initial} access={access} initialRequests={requests}>
-      <DiceProvider>
+      <DiceProvider characterId={inCampaign ? initial.id : undefined}>
         <SheetBody />
         <DiceTray />
       </DiceProvider>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { cryptoRng, d20, format, parse, roll, type Rng } from "./dice"
+import { cryptoRng, d20, format, naturalD20, parse, roll, type Rng } from "./dice"
 
 /** Rng finto che restituisce i valori indicati, in ordine. */
 const sequence = (...values: number[]): Rng => {
@@ -69,5 +69,16 @@ describe("cryptoRng", () => {
       expect(value).toBeGreaterThanOrEqual(1)
       expect(value).toBeLessThanOrEqual(6)
     }
+  })
+})
+
+describe("naturalD20", () => {
+  it.each([
+    ["d20+4", [17], 17],
+    ["2d20kh1+7", [20], 20],
+    ["d200", [150], null],
+    ["2d6", [3, 4], null],
+  ] as const)("%s con %j → %s", (notation, kept, expected) => {
+    expect(naturalD20(notation, [...kept])).toBe(expected)
   })
 })

@@ -86,3 +86,9 @@ export function d20(bonus: number, advantage: "normal" | "advantage" | "disadvan
   if (advantage === "normal") return { count: 1, sides: 20, mode: null, keep: null, modifier: bonus }
   return { count: 2, sides: 20, mode: advantage === "advantage" ? "kh" : "kl", keep: 1, modifier: bonus }
 }
+
+/** Valore del d20 tenuto (per 20 e 1 naturali), oppure null se il tiro non è un singolo d20. */
+export function naturalD20(notation: string, kept: number[]): number | null {
+  // "d20" non seguito da altre cifre: vale per "d20+4" e "2d20kh1", non per "d200"
+  return /d20(?!\d)/.test(notation) && kept.length === 1 ? kept[0] : null
+}

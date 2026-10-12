@@ -50,21 +50,21 @@ export function CombatStats() {
   const hitDiceLeft = hitDice.total - hitDice.used
   const dying = hitPoints.current === 0
 
-  function spendHitDie() {
+  async function spendHitDie() {
     const conMod = abilityModifier(character.abilities.con)
-    const result = rollDice("Dado vita", {
+    const result = await rollDice("Dado vita", {
       count: 1,
       sides: hitDice.die,
       mode: null,
       keep: null,
       modifier: conMod,
     })
-    dispatch({ type: "useHitDie", healed: Math.max(0, result.total) })
+    if (result) dispatch({ type: "useHitDie", healed: Math.max(0, result.total) })
   }
 
-  function rollDeathSave() {
-    const result = rollD20("Tiro contro la morte", 0)
-    dispatch({ type: "deathSaveRoll", natural: result.natural ?? result.total })
+  async function rollDeathSave() {
+    const result = await rollD20("Tiro contro la morte", 0)
+    if (result) dispatch({ type: "deathSaveRoll", natural: result.natural ?? result.total })
   }
 
   function longRest() {
