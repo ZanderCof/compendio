@@ -1,9 +1,12 @@
 "use client"
 
+import { Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { RollButton } from "@/components/dice/rollButton"
+import { Button } from "@/components/ui/button"
 import { useCharacter } from "./characterProvider"
+import { AddAttackForm } from "./editForms"
 import { SheetSection } from "./sheetSection"
 import { abilityModifier, attackBonus, signed } from "@/features/characters/rules"
 import { parse, type Dice } from "@/features/dice/dice"
@@ -19,10 +22,16 @@ function damageDice(damage: string, modifier: number): Dice | null {
 }
 
 export function AttacksTable() {
-  const { character } = useCharacter()
+  const { character, dispatch, editing } = useCharacter()
 
   return (
     <SheetSection title="Attacchi">
+      {character.attacks.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          Nessun attacco. {editing ? "Aggiungine uno qui sotto." : "Premi “Modifica” per aggiungerne."}
+        </p>
+      ) : (
+      <>
       <p className="mb-2 text-xs text-muted-foreground">
         Tocca il bonus per tirare per colpire, i danni per tirare i danni.
       </p>
@@ -34,10 +43,11 @@ export function AttacksTable() {
               <th className="py-1 pr-3 font-normal">Colpire</th>
               <th className="py-1 pr-3 font-normal">Danni</th>
               <th className="py-1 font-normal">Note</th>
+              {editing && <th className="w-8" />}
             </tr>
           </thead>
           <tbody>
-            {character.attacks.map((attack) => {
+            {character.attacks.map((attack, index) => {
               const damageMod = abilityModifier(character.abilities[attack.ability])
               const toHit = attackBonus(character, attack.ability, attack.proficient)
               const dice = damageDice(attack.damage, damageMod)
@@ -50,7 +60,7 @@ export function AttacksTable() {
               )
 
               return (
-                <tr key={attack.name} className="border-b border-border/60 last:border-0">
+                <tr key={`${attack.name}-${index}`} className="border-b border-border/60 last:border-0">
                   <td className="py-1.5 pr-3">{attack.name}</td>
                   <td className="py-1 pr-3">
                     <RollButton
@@ -81,12 +91,28 @@ export function AttacksTable() {
                     )}
                   </td>
                   <td className="py-1.5 text-muted-foreground">{attack.notes ?? "—"}</td>
+                  {editing && (
+                    <td>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        className="text-destructive"
+                        aria-label={`Elimina ${attack.name}`}
+                        onClick={() => dispatch({ type: "removeAttack", index })}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               )
             })}
           </tbody>
         </table>
       </div>
+      </>
+      )}
+      {editing && <AddAttackForm />}
     </SheetSection>
   )
 }

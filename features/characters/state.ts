@@ -1,4 +1,4 @@
-import type { Ability, Character, Currency, Item, Skill } from "./types"
+import type { Ability, Attack, Character, Currency, Feature, Item, Skill, Spell } from "./types"
 
 // Tutte le modifiche alla scheda passano da qui: funzioni pure, facili da testare.
 // Oggi le usa lo stato nel browser, domani le stesse azioni andranno al database.
@@ -30,6 +30,14 @@ export type CharacterAction =
   | { type: "cycleSkill"; skill: Skill }
   | { type: "toggleSave"; ability: Ability }
   | { type: "setStat"; stat: "level" | "armorClass" | "speed" | "experience"; value: number }
+  | { type: "addAttack"; attack: Attack }
+  | { type: "removeAttack"; index: number }
+  | { type: "addSpell"; spell: Spell }
+  | { type: "removeSpell"; name: string; level: number }
+  | { type: "addFeature"; feature: Feature }
+  | { type: "removeFeature"; index: number }
+  | { type: "setPersonality"; field: keyof Character["personality"]; value: string }
+  | { type: "setBackstory"; value: string }
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, Math.trunc(value)))
@@ -204,6 +212,54 @@ export function characterReducer(c: Character, action: CharacterAction): Charact
       const [min, max] = STAT_LIMITS[action.stat]
       return { ...c, [action.stat]: clamp(action.value, min, max) }
     }
+
+    case "addAttack": {
+      const name = action.attack.name.trim()
+      if (!name) return c
+      return { ...c, attacks: [...c.attacks, { ...action.attack, name }] }
+    }
+
+    case "removeAttack":
+      return { ...c, attacks: c.attacks.filter((_, i) => i !== action.index) }
+
+    case "addSpell": {
+      const name = action.spell.name.trim()
+      if (!name || !c.spellcasting) return c
+      const exists = c.spellcasting.spells.some((s) => s.name === name && s.level === action.spell.level)
+      if (exists) return c
+      return {
+        ...c,
+        spellcasting: { ...c.spellcasting, spells: [...c.spellcasting.spells, { ...action.spell, name }] },
+      }
+    }
+
+    case "removeSpell": {
+      if (!c.spellcasting) return c
+      return {
+        ...c,
+        spellcasting: {
+          ...c.spellcasting,
+          spells: c.spellcasting.spells.filter(
+            (s) => !(s.name === action.name && s.level === action.level)
+          ),
+        },
+      }
+    }
+
+    case "addFeature": {
+      const name = action.feature.name.trim()
+      if (!name) return c
+      return { ...c, features: [...c.features, { ...action.feature, name }] }
+    }
+
+    case "removeFeature":
+      return { ...c, features: c.features.filter((_, i) => i !== action.index) }
+
+    case "setPersonality":
+      return { ...c, personality: { ...c.personality, [action.field]: action.value.slice(0, 2000) } }
+
+    case "setBackstory":
+      return { ...c, backstory: action.value.slice(0, 10000) }
   }
 }
 

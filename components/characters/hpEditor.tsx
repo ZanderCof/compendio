@@ -10,7 +10,7 @@ import { useCharacter } from "./characterProvider"
 
 /** Popup per danni, cure e PF temporanei. Si apre toccando i punti ferita. */
 export function HpEditor({ children }: { children: React.ReactNode }) {
-  const { character, dispatch } = useCharacter()
+  const { character, dispatch, readOnly } = useCharacter()
   const [open, setOpen] = useState(false)
   const [amount, setAmount] = useState("")
 
@@ -25,6 +25,9 @@ export function HpEditor({ children }: { children: React.ReactNode }) {
   }
 
   const { current, max, temp } = character.hitPoints
+
+  // In sola lettura il pulsante resta visibile ma non apre nulla
+  if (readOnly) return <span className="pointer-events-none">{children}</span>
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

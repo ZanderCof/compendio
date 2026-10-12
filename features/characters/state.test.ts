@@ -149,3 +149,22 @@ describe("modifica", () => {
     expect(reduce(start, { type: "addItem", item: { name: "  ", quantity: 1 } })).toBe(start)
   })
 })
+
+describe("liste", () => {
+  it("aggiunge e toglie un incantesimo senza duplicati", () => {
+    let c = makeCharacter()
+    c = reduce(c, { type: "addSpell", spell: { name: "Cura Ferite", level: 1, prepared: true } })
+    c = reduce(c, { type: "addSpell", spell: { name: "Cura Ferite", level: 1 } })
+    expect(c.spellcasting?.spells).toHaveLength(1)
+    c = reduce(c, { type: "removeSpell", name: "Cura Ferite", level: 1 })
+    expect(c.spellcasting?.spells).toHaveLength(0)
+  })
+
+  it("aggiunge un attacco togliendo gli spazi dal nome", () => {
+    const c = reduce(makeCharacter(), {
+      type: "addAttack",
+      attack: { name: "  Spada  ", ability: "str", proficient: true, damage: "1d8", damageType: "tagliente" },
+    })
+    expect(c.attacks[0].name).toBe("Spada")
+  })
+})

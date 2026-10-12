@@ -47,7 +47,7 @@ function AddItemForm() {
 }
 
 export function EquipmentSection() {
-  const { character, dispatch, editing } = useCharacter()
+  const { character, dispatch, editing, readOnly } = useCharacter()
 
   const totalWeight = character.equipment.reduce(
     (sum, item) => sum + (item.weight ?? 0) * item.quantity,
@@ -76,13 +76,17 @@ export function EquipmentSection() {
             key={coin.key}
             className={cn("flex flex-col items-center rounded-lg px-1 py-1.5", coin.className)}
           >
-            <NumberField
-              label={`Monete: ${coin.label}`}
-              value={character.currency[coin.key]}
-              min={0}
-              onCommit={(value) => dispatch({ type: "setCurrency", coin: coin.key, value })}
-              className="h-7 w-full max-w-16 border-transparent bg-card/70 text-base"
-            />
+            {readOnly ? (
+              <span className="text-lg leading-7 tabular-nums">{character.currency[coin.key]}</span>
+            ) : (
+              <NumberField
+                label={`Monete: ${coin.label}`}
+                value={character.currency[coin.key]}
+                min={0}
+                onCommit={(value) => dispatch({ type: "setCurrency", coin: coin.key, value })}
+                className="h-7 w-full max-w-16 border-transparent bg-card/70 text-base"
+              />
+            )}
             <span className="mt-0.5 text-xs tracking-widest text-muted-foreground">
               {coin.label}
             </span>
@@ -90,6 +94,11 @@ export function EquipmentSection() {
         ))}
       </div>
 
+      {character.equipment.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          Zaino vuoto. {editing ? "Aggiungi un oggetto qui sotto." : !readOnly && "Premi “Modifica” per aggiungere oggetti."}
+        </p>
+      )}
       <ul className="grid gap-x-6 sm:grid-cols-2">
         {character.equipment.map((item, index) => (
           <li
@@ -99,6 +108,7 @@ export function EquipmentSection() {
             <Button
               variant="ghost"
               size="icon-xs"
+              className={cn(readOnly && "hidden")}
               aria-label={`Togli un ${item.name}`}
               disabled={item.quantity === 0}
               onClick={() =>
@@ -111,6 +121,7 @@ export function EquipmentSection() {
             <Button
               variant="ghost"
               size="icon-xs"
+              className={cn(readOnly && "hidden")}
               aria-label={`Aggiungi un ${item.name}`}
               onClick={() =>
                 dispatch({ type: "setItemQuantity", index, quantity: item.quantity + 1 })

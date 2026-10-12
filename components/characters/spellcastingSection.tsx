@@ -1,9 +1,12 @@
 "use client"
 
+import { X } from "lucide-react"
+
 import { RollButton } from "@/components/dice/rollButton"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useCharacter } from "./characterProvider"
+import { AddSpellForm } from "./editForms"
 import { SheetSection } from "./sheetSection"
 import {
   abilityLabel,
@@ -44,11 +47,14 @@ function SlotPips({ level, total, used, onChange }: SlotPipsProps) {
 }
 
 export function SpellcastingSection() {
-  const { character, dispatch } = useCharacter()
+  const { character, dispatch, editing } = useCharacter()
   const spellcasting = character.spellcasting
   if (!spellcasting) return null
 
-  const levels = [...new Set(spellcasting.spells.map((s) => s.level))].sort((a, b) => a - b)
+  // Livelli con incantesimi o con slot: così un personaggio nuovo vede già i suoi slot
+  const levels = [
+    ...new Set([...spellcasting.spells.map((s) => s.level), ...spellcasting.slots.map((s) => s.level)]),
+  ].sort((a, b) => a - b)
   const attack = spellAttackBonus(character, spellcasting.ability)
 
   return (
@@ -85,9 +91,13 @@ export function SpellcastingSection() {
                   />
                 )}
               </div>
+              {spells.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nessun incantesimo</p>
+              )}
               <ul className="flex flex-col gap-0.5">
                 {spells.map((spell) => (
-                  <li key={spell.name}>
+                  <li key={spell.name} className="flex items-center gap-1">
+                    <div className="min-w-0 flex-1">
                     {level === 0 ? (
                       <span className="flex items-center gap-2 py-0.5">{spell.name}</span>
                     ) : (
@@ -110,6 +120,17 @@ export function SpellcastingSection() {
                         {spell.name}
                       </button>
                     )}
+                    </div>
+                    {editing && (
+                      <button
+                        type="button"
+                        aria-label={`Togli ${spell.name}`}
+                        onClick={() => dispatch({ type: "removeSpell", name: spell.name, level: spell.level })}
+                        className="rounded p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -117,6 +138,7 @@ export function SpellcastingSection() {
           )
         })}
       </div>
+      {editing && <AddSpellForm />}
     </SheetSection>
   )
 }

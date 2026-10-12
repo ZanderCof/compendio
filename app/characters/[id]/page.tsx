@@ -2,46 +2,40 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
-import { CharacterSheet as InteractiveSheet } from "@/components/characters/characterSheet"
-import { getCharacter } from "@/features/characters/data"
+import { CharacterSheet } from "@/components/characters/characterSheet"
+import { getCharacterForViewer } from "@/features/characters/queries"
+import { requireUser } from "@/lib/session"
 
-export async function generateMetadata({
-  params,
-}: PageProps<"/characters/[id]">): Promise<Metadata> {
-  const { id } = await params
-  const character = await getCharacter(id)
-  return { title: character ? `${character.name} · Compendio` : "Personaggio non trovato" }
-}
+export const metadata: Metadata = { title: "Scheda personaggio · Compendio" }
 
 type Params = PageProps<"/characters/[id]">["params"]
 
 export default function CharacterPage({ params }: PageProps<"/characters/[id]">) {
   return (
-    <Suspense fallback={<CharacterSheetSkeleton />}>
-      <CharacterSheet params={params} />
-    </Suspense>
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
+      <Suspense fallback={<CharacterSheetSkeleton />}>
+        <CharacterSheetLoader params={params} />
+      </Suspense>
+    </main>
   )
 }
 
 function CharacterSheetSkeleton() {
   return (
-    <main className="mx-auto flex w-full max-w-3xl animate-pulse flex-col gap-4 p-4">
+    <div className="flex animate-pulse flex-col gap-4">
       <div className="h-16 rounded-xl bg-muted" />
       <div className="h-16 rounded-xl bg-muted" />
       <div className="h-12 rounded-xl bg-muted" />
       <div className="h-96 rounded-xl bg-muted" />
-    </main>
+    </div>
   )
 }
 
-async function CharacterSheet({ params }: { params: Params }) {
-  const { id } = await params
-  const character = await getCharacter(id)
-  if (!character) notFound()
+async function CharacterSheetLoader({ params }: { params: Params }) {
+  const [{ id }, user] = await Promise.all([params, requireUser()])
+  const result = await getCharacterForViewer(id, user.id)
+  // Stesso 404 sia se non esiste sia se non è tuo: non si rivela l'esistenza di schede altrui
+  if (!result) notFound()
 
-  return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4">
-      <InteractiveSheet initial={character} />
-    </main>
-  )
+  return <CharacterSheet initial={result.character} access={result.access} />
 }

@@ -43,7 +43,7 @@ function Pips({ filled, total, filledClassName, label, onChange }: PipsProps) {
 
 /** Punti ferita, dadi vita, tiri contro la morte e riposo lungo. */
 export function CombatStats() {
-  const { character, dispatch, editing } = useCharacter()
+  const { character, dispatch, editing, readOnly } = useCharacter()
   const { rollD20, rollDice } = useDice()
   const { hitPoints, hitDice, deathSaves } = character
   const hpPercent = Math.round((hitPoints.current / hitPoints.max) * 100)
@@ -78,10 +78,12 @@ export function CombatStats() {
     <SheetSection
       title="Salute"
       action={
-        <Button variant="outline" size="sm" onClick={longRest}>
-          <BedDouble />
-          Riposo lungo
-        </Button>
+        !readOnly && (
+          <Button variant="outline" size="sm" onClick={longRest}>
+            <BedDouble />
+            Riposo lungo
+          </Button>
+        )
       }
     >
       <div className="flex flex-col gap-4">
@@ -106,12 +108,14 @@ export function CombatStats() {
               <span className="ml-2 text-base text-violet">+{hitPoints.temp} temp</span>
             )}
           </span>
-          <HpEditor>
-            <Button size="sm">
-              <HeartPulse />
-              Danno / Cura
-            </Button>
-          </HpEditor>
+          {!readOnly && (
+            <HpEditor>
+              <Button size="sm">
+                <HeartPulse />
+                Danno / Cura
+              </Button>
+            </HpEditor>
+          )}
         </div>
         <Progress value={hpPercent} className="h-2" aria-label="Punti ferita" />
 
@@ -122,7 +126,12 @@ export function CombatStats() {
               {hitDiceLeft}/{hitDice.total} d{hitDice.die}
             </p>
           </div>
-          <Button variant="secondary" size="sm" disabled={hitDiceLeft === 0} onClick={spendHitDie}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={hitDiceLeft === 0 || readOnly}
+            onClick={spendHitDie}
+          >
             <Dices />
             Usa un dado vita
           </Button>
@@ -166,7 +175,7 @@ export function CombatStats() {
           <Button
             variant={dying ? "destructive" : "outline"}
             size="sm"
-            disabled={!dying}
+            disabled={!dying || readOnly}
             onClick={rollDeathSave}
             title={dying ? undefined : "Disponibile solo a 0 punti ferita"}
           >

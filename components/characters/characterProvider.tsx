@@ -2,81 +2,79 @@
 
 import { createContext, use, useEffect, useMemo, useReducer, useState } from "react"
 
-import { characterSheetSchema } from "@/features/characters/schema"
+import { saveCharacterSheet } from "@/features/characters/actions"
+import type { CharacterAccess } from "@/features/characters/queries"
 import { characterReducer, type CharacterAction } from "@/features/characters/state"
 import type { Character } from "@/features/characters/types"
+
+export type SaveStatus = "saved" | "saving" | "error"
 
 type CharacterContextValue = {
   character: Character
   dispatch: (action: CharacterAction) => void
+  /** Solo il proprietario modifica: il master per ora vede la scheda in sola lettura. */
+  readOnly: boolean
   /** Modalità modifica: sblocca i valori che in partita di solito non cambiano. */
   editing: boolean
   setEditing: (editing: boolean) => void
-  /** Scarta le modifiche locali e torna ai dati originali. */
-  reset: () => void
+  saveStatus: SaveStatus
 }
 
 const CharacterContext = createContext<CharacterContextValue | null>(null)
 
-// Finché non c'è il database le modifiche restano nel browser.
-// Quando ci sarà, qui il salvataggio diventerà una Server Action.
-const storageKey = (id: string) => `compendio:character:${id}`
-
-function loadSaved(initial: Character): Character | null {
-  try {
-    const raw = localStorage.getItem(storageKey(initial.id))
-    if (!raw) return null
-    const parsed = characterSheetSchema.safeParse(JSON.parse(raw))
-    return parsed.success ? { ...parsed.data, id: initial.id } : null
-  } catch {
-    return null
-  }
-}
+// Aspetta una breve pausa tra le modifiche prima di salvare: cinque tocchi su "+" = un salvataggio
+const SAVE_DELAY_MS = 700
 
 export function CharacterProvider({
   initial,
+  access,
   children,
 }: {
   initial: Character
+  access: CharacterAccess
   children: React.ReactNode
 }) {
-  const [character, dispatch] = useReducer(characterReducer, initial)
+  const [character, rawDispatch] = useReducer(characterReducer, initial)
   const [editing, setEditing] = useState(false)
+  // Ultima versione confermata dal database: se è diversa da quella a schermo, c'è un salvataggio in sospeso
+  const [saved, setSaved] = useState(initial)
+  const [failed, setFailed] = useState(false)
+  const readOnly = access !== "owner"
+  const dirty = character !== saved
 
-  // Al primo render usa i dati del server (uguali per server e browser), poi carica le modifiche salvate
+  // Salvataggio automatico sul database dopo ogni modifica
   useEffect(() => {
-    const saved = loadSaved(initial)
-    if (saved) dispatch({ type: "replace", character: saved })
-  }, [initial])
+    if (!dirty || readOnly) return
+    const timer = setTimeout(async () => {
+      const { id, ...sheet } = character
+      const result = await saveCharacterSheet(id, sheet)
+      setFailed(!result.ok)
+      if (result.ok) setSaved(character)
+    }, SAVE_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [character, dirty, readOnly])
 
+  // Avvisa prima di chiudere la pagina se una modifica non è ancora arrivata al database
   useEffect(() => {
-    // Finché la scheda è quella iniziale non si salva nulla: altrimenti, al primo render,
-    // i dati iniziali sovrascriverebbero quelli salvati prima ancora di caricarli
-    if (character === initial) return
-    try {
-      // L'id è già nella chiave: si salva solo la scheda, come farà il database
-      const sheet: Partial<Character> = { ...character }
-      delete sheet.id
-      localStorage.setItem(storageKey(character.id), JSON.stringify(sheet))
-    } catch {
-      // Spazio pieno o storage bloccato: la scheda funziona lo stesso, senza salvare
-    }
-  }, [character, initial])
+    if (!dirty) return
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener("beforeunload", warn)
+    return () => window.removeEventListener("beforeunload", warn)
+  }, [dirty])
+
+  const saveStatus: SaveStatus = failed ? "error" : dirty ? "saving" : "saved"
 
   const value = useMemo<CharacterContextValue>(
     () => ({
       character,
-      dispatch,
-      editing,
+      // In sola lettura le azioni vengono ignorate
+      dispatch: readOnly ? () => {} : rawDispatch,
+      readOnly,
+      editing: editing && !readOnly,
       setEditing,
-      reset: () => {
-        try {
-          localStorage.removeItem(storageKey(initial.id))
-        } catch {}
-        dispatch({ type: "replace", character: initial })
-      },
+      saveStatus,
     }),
-    [character, editing, initial]
+    [character, editing, readOnly, saveStatus]
   )
 
   return <CharacterContext value={value}>{children}</CharacterContext>
