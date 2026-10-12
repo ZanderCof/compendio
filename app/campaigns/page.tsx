@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Suspense } from "react"
-import { Crown, Swords, Users } from "lucide-react"
+import { CalendarDays, Crown, Swords, Users } from "lucide-react"
 
 import { CreateCampaignForm, JoinCampaignForm } from "@/components/campaigns/campaignForms"
 import { ReceivedInvitations } from "@/components/campaigns/receivedInvitations"
 import { SheetSection } from "@/components/characters/sheetSection"
 import { Badge } from "@/components/ui/badge"
 import { listMyCampaigns, listMyInvitations } from "@/features/campaigns/queries"
+import { campaignsAwaitingVote } from "@/features/polls/queries"
 import { requireUser } from "@/lib/session"
 
 export const metadata: Metadata = { title: "Campagne · Compendio" }
@@ -43,9 +44,10 @@ export default function CampaignsPage() {
 
 async function CampaignList() {
   const user = await requireUser()
-  const [campaigns, invitations] = await Promise.all([
+  const [campaigns, invitations, awaiting] = await Promise.all([
     listMyCampaigns(user.id),
     listMyInvitations(user.email),
+    campaignsAwaitingVote(user.id),
   ])
 
   return (
@@ -68,7 +70,13 @@ async function CampaignList() {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h2 className="text-xl leading-tight tracking-wide">{campaign.name}</h2>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      {awaiting.includes(campaign.id) && (
+                        <Badge variant="outline" className="border-primary text-primary">
+                          <CalendarDays />
+                          Vota le date
+                        </Badge>
+                      )}
                       {inSession && (
                         <Badge className="bg-aqua text-foreground">
                           <Swords />

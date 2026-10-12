@@ -14,16 +14,26 @@ import {
 import { cn } from "@/lib/utils"
 import { NAV_LINKS, isActive } from "./navLinks"
 
+type Badges = Partial<Record<string, number>>
+
 /** Link della navbar con quello della pagina corrente evidenziato. */
-export function MainNav() {
-  return <NavItems pathname={usePathname()} />
+export function MainNav({ badges }: { badges?: Badges }) {
+  return <NavItems pathname={usePathname()} badges={badges} />
+}
+
+/** Pallino di avviso accanto a un link (es. sondaggi da votare). */
+function Dot({ count, label }: { count?: number; label: string }) {
+  if (!count) return null
+  return (
+    <span className="ml-1.5 inline-block size-2 rounded-full bg-primary align-middle" aria-label={`${count} ${label}`} />
+  )
 }
 
 /**
  * Link della navbar: in riga su desktop, in un menu a tendina su telefono.
  * Senza pathname (mentre la pagina carica) nessun link è evidenziato.
  */
-export function NavItems({ pathname = "" }: { pathname?: string }) {
+export function NavItems({ pathname = "", badges = {} }: { pathname?: string; badges?: Badges }) {
   return (
     <>
       <nav className="hidden items-center gap-1 md:flex" aria-label="Principale">
@@ -38,14 +48,18 @@ export function NavItems({ pathname = "" }: { pathname?: string }) {
             )}
           >
             {link.label}
+            <Dot count={badges[link.href]} label="da guardare" />
           </Link>
         ))}
       </nav>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="md:hidden" aria-label="Apri menu">
+          <Button variant="ghost" size="icon" className="relative md:hidden" aria-label="Apri menu">
             <Menu />
+            {Object.values(badges).some(Boolean) && (
+              <span className="absolute top-1 right-1 size-2 rounded-full bg-primary" />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">
@@ -56,6 +70,7 @@ export function NavItems({ pathname = "" }: { pathname?: string }) {
                 className={cn(isActive(pathname, link.href) && "text-primary")}
               >
                 {link.label}
+                <Dot count={badges[link.href]} label="da guardare" />
               </Link>
             </DropdownMenuItem>
           ))}

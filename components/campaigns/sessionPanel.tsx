@@ -58,47 +58,46 @@ export function SessionPanel({
   return (
     <section
       className={cn(
-        "flex flex-wrap items-center gap-4 rounded-xl border-2 p-4",
-        active ? "border-aqua bg-aqua/10" : "border-primary/30 bg-secondary/40"
+        "flex flex-col gap-3 rounded-xl border p-3",
+        active ? "border-aqua bg-aqua/10" : "bg-card"
       )}
     >
-      <span
-        className={cn(
-          "flex size-11 shrink-0 items-center justify-center rounded-full",
-          active ? "bg-aqua text-foreground" : "bg-primary text-primary-foreground"
-        )}
-      >
-        {active ? <Swords className="size-5" /> : <Hourglass className="size-5" />}
-      </span>
-
-      <div className="min-w-0 flex-1">
-        <h2 className="text-xl leading-tight tracking-wide">
-          {active ? "Sessione in corso" : "Prossima sessione"}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {active
-            ? `Iniziata alle ${timeFormat.format(new Date(active.startedAt))}`
-            : state.players === 0
-              ? "Ancora nessun giocatore: invitali dal gruppo qui sotto"
-              : `${state.ready} di ${state.players} ${state.players === 1 ? "giocatore pronto" : "giocatori pronti"}`}
-        </p>
+      <div className="flex items-center gap-2.5">
+        <span
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-full",
+            active ? "bg-aqua text-foreground" : "bg-primary/15 text-primary"
+          )}
+        >
+          {active ? <Swords className="size-4" /> : <Hourglass className="size-4" />}
+        </span>
+        <div className="min-w-0">
+          <h2 className="truncate leading-tight tracking-wide">{active ? "Sessione in corso" : "Sessione"}</h2>
+          <p className="truncate text-xs text-muted-foreground">
+            {active
+              ? `Dalle ${timeFormat.format(new Date(active.startedAt))}`
+              : state.players === 0
+                ? "Nessun giocatore ancora"
+                : `${state.ready}/${state.players} ${state.players === 1 ? "pronto" : "pronti"}`}
+          </p>
+        </div>
       </div>
 
       {isMaster ? (
-        <Button size="lg" disabled={pending} onClick={() => run(() => startSession(campaignId))}>
+        <Button size="sm" disabled={pending} onClick={() => run(() => startSession(campaignId))}>
           {pending ? <LoaderCircle className="animate-spin" /> : <Play />}
-          {active ? "Riprendi sessione" : "Avvia sessione"}
+          {active ? "Riprendi" : "Avvia"}
         </Button>
       ) : active ? (
-        <Button size="lg" asChild>
+        <Button size="sm" asChild>
           <Link href={playHref}>
             <Swords />
-            Entra nella sessione
+            Entra
           </Link>
         </Button>
       ) : (
         <Button
-          size="lg"
+          size="sm"
           variant={state.viewerReady ? "secondary" : "default"}
           disabled={pending}
           aria-pressed={state.viewerReady}

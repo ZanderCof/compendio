@@ -3,16 +3,17 @@ import { Suspense } from "react"
 import { Dices } from "lucide-react"
 
 import { ThemeToggle } from "@/components/theme/themeToggle"
-import { MainNav, NavItems } from "./mainNav"
+import { NavItems } from "./mainNav"
+import { NavWithBadges } from "./navWithBadges"
 import { UserMenu } from "./userMenu"
 
 export function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-4">
-        {/* Il percorso corrente è noto solo a runtime: finché non arriva, link senza evidenziazione */}
+        {/* Percorso e avvisi sono noti solo a runtime: finché non arrivano, link semplici */}
         <Suspense fallback={<NavItems />}>
-          <MainNav />
+          <NavWithBadges />
         </Suspense>
 
         <Link

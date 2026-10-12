@@ -12,6 +12,7 @@ import {
 import { CampaignChat } from "@/components/campaigns/campaignChat"
 import { CampaignGroup } from "@/components/campaigns/campaignGroup"
 import { CampaignSettings } from "@/components/campaigns/campaignSettings"
+import { JournalCard, NextDateCard } from "@/components/campaigns/recapCards"
 import { SessionPanel } from "@/components/campaigns/sessionPanel"
 import { SheetSection } from "@/components/characters/sheetSection"
 import { Badge } from "@/components/ui/badge"
@@ -20,6 +21,7 @@ import { getCampaignGroup } from "@/features/campaigns/group"
 import { getCampaignForMember } from "@/features/campaigns/queries"
 import { listMyCharacters } from "@/features/characters/queries"
 import { listRecentMessages } from "@/features/chat/queries"
+import { campaignsAwaitingVote, getOpenPoll, getUpcomingSession } from "@/features/polls/queries"
 import { getSessionState } from "@/features/sessions/queries"
 import { requireUser } from "@/lib/session"
 
@@ -42,11 +44,14 @@ async function CampaignLoader({ params }: { params: Params }) {
   const campaign = await getCampaignForMember(id, user.id)
   if (!campaign) notFound()
 
-  const [group, myCharacters, session, messages] = await Promise.all([
+  const [group, myCharacters, session, messages, poll, awaiting, upcoming] = await Promise.all([
     getCampaignGroup(campaign.id, user.id),
     listMyCharacters(user.id),
     getSessionState(campaign.id, user.id),
     listRecentMessages(campaign.id),
+    getOpenPoll(campaign.id),
+    campaignsAwaitingVote(user.id),
+    getUpcomingSession(campaign.id),
   ])
   const isMaster = campaign.role === "MASTER"
   const addable = myCharacters
@@ -79,7 +84,18 @@ async function CampaignLoader({ params }: { params: Params }) {
         )}
       </div>
 
-      <SessionPanel campaignId={campaign.id} isMaster={isMaster} initial={session} />
+      {/* Riquadri piccoli affiancati: sessione, data della prossima, diario */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <SessionPanel campaignId={campaign.id} isMaster={isMaster} initial={session} />
+        <NextDateCard
+          campaignId={campaign.id}
+          upcoming={upcoming}
+          hasOpenPoll={poll !== null}
+          awaitingVote={awaiting.includes(campaign.id)}
+          isMaster={isMaster}
+        />
+        <JournalCard campaignId={campaign.id} isMaster={isMaster} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         <SheetSection

@@ -31,6 +31,9 @@ model User {
   invitationsSent Invitation[]
   sessionsStarted GameSession[]
   chatMessages    ChatMessage[]
+  journalEntries  JournalEntry[]
+  datePolls       DatePoll[]
+  dateVotes       DateVote[]
 
   @@map("user")
 }
@@ -101,12 +104,16 @@ model Campaign {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  members     Membership[]
-  characters  Character[]
-  rolls       Roll[]
-  invitations Invitation[]
-  sessions    GameSession[]
-  messages    ChatMessage[]
+  members       Membership[]
+  characters    Character[]
+  rolls         Roll[]
+  invitations   Invitation[]
+  sessions      GameSession[]
+  messages      ChatMessage[]
+  journal       JournalEntry[]
+  datePolls     DatePoll[]
+  // Data della prossima sessione, scelta dal master dal sondaggio
+  nextSessionAt DateTime?
 
   @@map("campaign")
 }
@@ -189,6 +196,91 @@ model ChatMessage {
 
   @@index([campaignId, createdAt])
   @@map("chat_message")
+}
+
+// Diario della campagna. SHARED: lo leggono e scrivono tutti i membri.
+// MASTER: note personali del master, le vede solo lui.
+enum JournalScope {
+  SHARED
+  MASTER
+}
+
+enum JournalKind {
+  SESSION
+  NPC
+  PLACE
+  NOTE
+}
+
+model JournalEntry {
+  id        String       @id @default(cuid())
+  scope     JournalScope
+  kind      JournalKind
+  title     String
+  body      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, scope, createdAt])
+  @@map("journal_entry")
+}
+
+// Sondaggio sulle date della prossima sessione: il master propone, tutti rispondono, il master sceglie.
+enum PollStatus {
+  OPEN
+  CLOSED
+}
+
+enum Availability {
+  YES
+  MAYBE
+  NO
+}
+
+model DatePoll {
+  id        String     @id @default(cuid())
+  status    PollStatus @default(OPEN)
+  createdAt DateTime   @default(now())
+  closedAt  DateTime?
+
+  campaignId  String
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  options     DateOption[]
+
+  @@index([campaignId, status])
+  @@map("date_poll")
+}
+
+model DateOption {
+  id       String   @id @default(cuid())
+  startsAt DateTime
+
+  pollId String
+  poll   DatePoll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes  DateVote[]
+
+  @@index([pollId])
+  @@map("date_option")
+}
+
+model DateVote {
+  id     String       @id @default(cuid())
+  answer Availability
+
+  optionId String
+  option   DateOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+  @@map("date_vote")
 }
 
 // ─── Personaggi ──────────────────────────────────────────────────
