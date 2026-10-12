@@ -112,6 +112,7 @@ const FIELD_LABELS: Record<string, string> = {
   "deathSaves.failures": "Fallimenti contro la morte",
   inspiration: "Ispirazione",
   attacks: "Attacchi",
+  resources: "Capacità a usi limitati",
   spellcasting: "Incantesimi",
   "spellcasting.ability": "Caratteristica da incantatore",
   "spellcasting.slots": "Slot incantesimo",

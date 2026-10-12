@@ -73,6 +73,16 @@ export const currencySchema = z.object({
   pp: nonNegative,
 })
 
+// Capacità a usi limitati (Ira, Incanalare Divinità...): si ricaricano con il riposo breve o lungo
+export const resourceSchema = z
+  .object({
+    name: z.string().min(1).max(60),
+    max: z.number().int().min(1).max(99),
+    used: nonNegative,
+    recharge: z.enum(["short", "long"]),
+  })
+  .refine((r) => r.used <= r.max, "Usati più del massimo")
+
 export const featureSchema = z.object({
   name: z.string().min(1),
   source: z.string(), // es. "Razza", "Classe", "Talento"
@@ -103,6 +113,8 @@ export const characterSheetSchema = z.object({
 
   attacks: z.array(attackSchema),
   spellcasting: spellcastingSchema.optional(),
+  // Le schede create prima di questa funzione non hanno il campo: si parte da una lista vuota
+  resources: z.array(resourceSchema).default([]),
 
   equipment: z.array(itemSchema),
   currency: currencySchema,

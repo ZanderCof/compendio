@@ -24,6 +24,7 @@ function makeCharacter(overrides: Partial<Character> = {}): Character {
     deathSaves: { successes: 0, failures: 0 },
     inspiration: false,
     attacks: [],
+    resources: [],
     spellcasting: { ability: "wis", slots: [{ level: 1, total: 4, used: 3 }], spells: [] },
     equipment: [],
     currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
@@ -166,5 +167,53 @@ describe("liste", () => {
       attack: { name: "  Spada  ", ability: "str", proficient: true, damage: "1d8", damageType: "tagliente" },
     })
     expect(c.attacks[0].name).toBe("Spada")
+  })
+})
+
+describe("risorse e riposi", () => {
+  const withResources = makeCharacter({
+    resources: [
+      { name: "Incanalare Divinità", max: 1, used: 1, recharge: "short" },
+      { name: "Lampo Interdittore", max: 4, used: 3, recharge: "long" },
+    ],
+  })
+
+  it("il riposo breve ricarica solo le capacità 'breve'", () => {
+    const c = reduce(withResources, { type: "shortRest" })
+    expect(c.resources.map((r) => r.used)).toEqual([0, 3])
+    expect(c.spellcasting?.slots[0].used).toBe(3) // un chierico non recupera slot
+  })
+
+  it("il riposo breve del warlock ricarica gli slot del patto", () => {
+    const warlock = makeCharacter({ className: "Warlock" })
+    expect(reduce(warlock, { type: "shortRest" }).spellcasting?.slots[0].used).toBe(0)
+  })
+
+  it("il riposo lungo ricarica tutte le capacità", () => {
+    const c = reduce(withResources, { type: "longRest" })
+    expect(c.resources.every((r) => r.used === 0)).toBe(true)
+  })
+
+  it("gli usi restano tra 0 e il massimo", () => {
+    expect(reduce(withResources, { type: "setResourceUsed", index: 1, used: 9 }).resources[1].used).toBe(4)
+    expect(reduce(withResources, { type: "setResourceUsed", index: 1, used: -2 }).resources[1].used).toBe(0)
+  })
+
+  it("una capacità nuova parte con tutti gli usi disponibili", () => {
+    const c = reduce(makeCharacter(), {
+      type: "addResource",
+      resource: { name: " Ira ", max: 3, used: 2, recharge: "long" },
+    })
+    expect(c.resources).toEqual([{ name: "Ira", max: 3, used: 0, recharge: "long" }])
+  })
+})
+
+describe("schede vecchie", () => {
+  it("una scheda salvata senza 'resources' si legge lo stesso", async () => {
+    const { characterSheetSchema } = await import("./schema")
+    const old: Partial<Character> = makeCharacter()
+    delete old.resources
+    delete old.id
+    expect(characterSheetSchema.parse(old).resources).toEqual([])
   })
 })

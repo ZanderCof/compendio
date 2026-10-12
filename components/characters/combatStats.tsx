@@ -1,6 +1,6 @@
 "use client"
 
-import { BedDouble, Dices, HeartPulse } from "lucide-react"
+import { BedDouble, Coffee, Dices, HeartPulse } from "lucide-react"
 import { toast } from "sonner"
 
 import { useDice } from "@/components/dice/diceProvider"
@@ -67,10 +67,17 @@ export function CombatStats() {
     if (result) dispatch({ type: "deathSaveRoll", natural: result.natural ?? result.total })
   }
 
+  function shortRest() {
+    dispatch({ type: "shortRest" })
+    toast.success("Riposo breve completato", {
+      description: "Capacità da riposo breve ricaricate. Puoi spendere dadi vita per curarti.",
+    })
+  }
+
   function longRest() {
     dispatch({ type: "longRest" })
     toast.success("Riposo lungo completato", {
-      description: "PF, slot incantesimo e metà dei dadi vita recuperati.",
+      description: "PF, slot incantesimo, capacità e metà dei dadi vita recuperati.",
     })
   }
 
@@ -79,10 +86,16 @@ export function CombatStats() {
       title="Salute"
       action={
         !readOnly && (
-          <Button variant="outline" size="sm" onClick={longRest}>
-            <BedDouble />
-            Riposo lungo
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={shortRest}>
+              <Coffee />
+              Riposo breve
+            </Button>
+            <Button variant="outline" size="sm" onClick={longRest}>
+              <BedDouble />
+              Riposo lungo
+            </Button>
+          </div>
         )
       }
     >

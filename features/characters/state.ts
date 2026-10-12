@@ -1,4 +1,5 @@
-import type { Ability, Attack, Character, Currency, Feature, Item, Skill, Spell } from "./types"
+import { findClass } from "./classes"
+import type { Ability, Attack, Character, Currency, Feature, Item, Resource, Skill, Spell } from "./types"
 
 // Tutte le modifiche alla scheda passano da qui: funzioni pure, facili da testare.
 // Oggi le usa lo stato nel browser, domani le stesse azioni andranno al database.
@@ -14,7 +15,11 @@ export type CharacterAction =
   | { type: "deathSaveRoll"; natural: number }
   | { type: "useHitDie"; healed: number }
   | { type: "setHitDiceUsed"; used: number }
+  | { type: "shortRest" }
   | { type: "longRest" }
+  | { type: "setResourceUsed"; index: number; used: number }
+  | { type: "addResource"; resource: Resource }
+  | { type: "removeResource"; index: number }
   | { type: "toggleInspiration" }
   // Incantesimi
   | { type: "setSlotUsed"; level: number; used: number }
@@ -116,8 +121,23 @@ export function characterReducer(c: Character, action: CharacterAction): Charact
     case "setHitDiceUsed":
       return { ...c, hitDice: { ...c.hitDice, used: clamp(action.used, 0, c.hitDice.total) } }
 
+    case "shortRest": {
+      // Si ricaricano le capacità "breve" e, per il Warlock, gli slot del patto.
+      // I dadi vita si spendono a parte, uno alla volta.
+      const pact = findClass(c.className)?.caster?.progression === "pact"
+      return {
+        ...c,
+        resources: c.resources.map((r) => (r.recharge === "short" ? { ...r, used: 0 } : r)),
+        spellcasting:
+          c.spellcasting && pact
+            ? { ...c.spellcasting, slots: c.spellcasting.slots.map((slot) => ({ ...slot, used: 0 })) }
+            : c.spellcasting,
+      }
+    }
+
     case "longRest": {
-      // Tutti i PF, metà dei dadi vita (minimo 1), tutti gli slot. I PF temporanei svaniscono.
+      // Tutti i PF, metà dei dadi vita (minimo 1), tutti gli slot e tutte le capacità.
+      // I PF temporanei svaniscono.
       const recovered = Math.max(1, Math.floor(c.hitDice.total / 2))
       return {
         ...c,
@@ -128,8 +148,27 @@ export function characterReducer(c: Character, action: CharacterAction): Charact
           ...c.spellcasting,
           slots: c.spellcasting.slots.map((slot) => ({ ...slot, used: 0 })),
         },
+        resources: c.resources.map((r) => ({ ...r, used: 0 })),
       }
     }
+
+    case "setResourceUsed":
+      return {
+        ...c,
+        resources: c.resources.map((r, i) =>
+          i === action.index ? { ...r, used: clamp(action.used, 0, r.max) } : r
+        ),
+      }
+
+    case "addResource": {
+      const name = action.resource.name.trim()
+      if (!name) return c
+      const max = clamp(action.resource.max, 1, 99)
+      return { ...c, resources: [...c.resources, { ...action.resource, name, max, used: 0 }] }
+    }
+
+    case "removeResource":
+      return { ...c, resources: c.resources.filter((_, i) => i !== action.index) }
 
     case "toggleInspiration":
       return { ...c, inspiration: !c.inspiration }

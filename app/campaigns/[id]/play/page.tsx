@@ -2,12 +2,14 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
-import { ArrowLeft, Hourglass } from "lucide-react"
+import { ArrowLeft, Hourglass, Plus } from "lucide-react"
 
 import { DiceTest } from "@/components/play/diceTest"
 import { EndSessionButton } from "@/components/play/endSessionButton"
+import { PlayerPanel } from "@/components/play/playerPanel"
 import { Button } from "@/components/ui/button"
 import { getCampaignForMember } from "@/features/campaigns/queries"
+import { getMyCharacterInCampaign } from "@/features/characters/queries"
 import { getSessionState } from "@/features/sessions/queries"
 import { requireUser } from "@/lib/session"
 
@@ -74,10 +76,32 @@ async function PlayLoader({ params }: { params: Params }) {
         {isMaster && <EndSessionButton campaignId={campaign.id} />}
       </div>
 
-      {/* La vera pagina di gioco arriverà qui: per ora un tiro di prova */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border bg-card p-10">
-        <DiceTest />
-      </div>
+      {isMaster ? (
+        // La parte del master (feed dei tiri, iniziativa) arriva nei prossimi passi
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border bg-card p-10">
+          <DiceTest />
+        </div>
+      ) : (
+        <PlayerSide campaignId={campaign.id} userId={user.id} />
+      )}
     </>
   )
+}
+
+async function PlayerSide({ campaignId, userId }: { campaignId: string; userId: string }) {
+  const mine = await getMyCharacterInCampaign(campaignId, userId)
+  if (!mine) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-10 text-center">
+        <p className="text-lg">Non hai un personaggio in questa campagna</p>
+        <Button asChild>
+          <Link href={`/characters/new?campaign=${campaignId}`}>
+            <Plus />
+            Crea un personaggio
+          </Link>
+        </Button>
+      </div>
+    )
+  }
+  return <PlayerPanel character={mine.character} requests={mine.requests} />
 }

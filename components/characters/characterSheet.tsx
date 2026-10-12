@@ -35,6 +35,7 @@ import { EditRequestsPanel, ProposalBar } from "./editRequests"
 import { EquipmentSection } from "./equipmentSection"
 import { FeaturesSection, ProficienciesSection } from "./featuresSection"
 import { PersonalitySection } from "./personalitySection"
+import { ResourcesSection } from "./resourcesSection"
 import { SheetTabs, type SheetTab } from "./sheetTabs"
 import { SkillsList } from "./skillsList"
 import { SpellcastingSection } from "./spellcastingSection"
@@ -143,6 +144,7 @@ function SheetBody() {
       content: (
         <>
           <CombatStats />
+          <ResourcesSection />
           <AttacksTable />
         </>
       ),

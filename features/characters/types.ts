@@ -8,6 +8,7 @@ import type {
   featureSchema,
   itemSchema,
   proficiencySchema,
+  resourceSchema,
   skillSchema,
   spellcastingSchema,
   spellSchema,
@@ -24,6 +25,7 @@ export type Spellcasting = z.infer<typeof spellcastingSchema>
 export type Item = z.infer<typeof itemSchema>
 export type Currency = z.infer<typeof currencySchema>
 export type Feature = z.infer<typeof featureSchema>
+export type Resource = z.infer<typeof resourceSchema>
 
 /** Contenuto del campo JSON `Character.sheet`. */
 export type CharacterSheet = z.infer<typeof characterSheetSchema>

@@ -55,6 +55,7 @@ export function buildSheet(input: NewCharacter, playerName: string): CharacterSh
     inspiration: false,
 
     attacks: [],
+    resources: [],
     spellcasting: classInfo?.caster
       ? {
           ability: classInfo.caster.ability,

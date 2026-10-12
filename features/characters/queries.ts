@@ -98,3 +98,13 @@ export async function getCharacterForViewer(
     requests: await listPendingRequests(row.id),
   }
 }
+
+/** Il personaggio dell'utente in una campagna (il più recente, se ne ha più di uno). */
+export async function getMyCharacterInCampaign(campaignId: string, userId: string) {
+  const row = await prisma.character.findFirst({
+    where: { campaignId, ownerId: userId },
+    orderBy: { updatedAt: "desc" },
+    select: { id: true },
+  })
+  return row ? getCharacterForViewer(row.id, userId) : null
+}
