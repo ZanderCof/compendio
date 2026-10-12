@@ -131,3 +131,43 @@ export async function fetchCampaignGroup(campaignId: string): Promise<GroupEntry
   if (!member) return []
   return getCampaignGroup(campaignId, user.id)
 }
+
+/** Il master cambia nome e descrizione. */
+export async function updateCampaign(
+  campaignId: string,
+  _prev: FormState,
+  formData: FormData
+): Promise<FormState & { saved?: boolean }> {
+  const user = await requireUser()
+  const parsed = campaignSchema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description") || undefined,
+  })
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message }
+
+  const { count } = await prisma.campaign.updateMany({
+    where: { id: campaignId, members: { some: { userId: user.id, role: "MASTER" } } },
+    data: { name: parsed.data.name, description: parsed.data.description ?? null },
+  })
+  if (count === 0) return { error: "Solo il master può modificare la campagna" }
+  refresh()
+  return { saved: true }
+}
+
+/**
+ * Il master elimina la campagna. Membri, inviti, sessioni e chat se ne vanno con lei;
+ * i personaggi restano ai giocatori (senza campagna) e le proposte del master in attesa vengono cancellate.
+ */
+export async function deleteCampaign(campaignId: string): Promise<FormState> {
+  const user = await requireUser()
+  const master = await prisma.membership.findFirst({
+    where: { campaignId, userId: user.id, role: "MASTER" },
+  })
+  if (!master) return { error: "Solo il master può eliminare la campagna" }
+
+  await prisma.$transaction([
+    prisma.editRequest.deleteMany({ where: { status: "PENDING", character: { campaignId } } }),
+    prisma.campaign.delete({ where: { id: campaignId } }),
+  ])
+  redirect("/campaigns")
+}

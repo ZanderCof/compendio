@@ -11,6 +11,7 @@ import {
 } from "@/components/campaigns/campaignActions"
 import { CampaignChat } from "@/components/campaigns/campaignChat"
 import { CampaignGroup } from "@/components/campaigns/campaignGroup"
+import { CampaignSettings } from "@/components/campaigns/campaignSettings"
 import { SessionPanel } from "@/components/campaigns/sessionPanel"
 import { SheetSection } from "@/components/characters/sheetSection"
 import { Badge } from "@/components/ui/badge"
@@ -60,10 +61,17 @@ async function CampaignLoader({ params }: { params: Params }) {
           {campaign.description && <p className="mt-1 max-w-2xl text-muted-foreground">{campaign.description}</p>}
         </div>
         {isMaster ? (
-          <Badge className="h-6 px-3">
-            <Crown />
-            Sei il master
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className="h-6 px-3">
+              <Crown />
+              Sei il master
+            </Badge>
+            <CampaignSettings
+              campaignId={campaign.id}
+              name={campaign.name}
+              description={campaign.description}
+            />
+          </div>
         ) : (
           <Badge variant="secondary" className="h-6 px-3">
             Sei un giocatore
