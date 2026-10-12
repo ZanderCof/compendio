@@ -1,12 +1,193 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─── Autenticazione (tabelle richieste da Better Auth) ───────────
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+  memberships   Membership[]
+  characters    Character[]
+  rolls         Roll[]
+  editRequests  EditRequest[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ─── Campagne e ruoli ────────────────────────────────────────────
+
+// Il ruolo vale per campagna: si può essere master in una e giocatore in un'altra.
+enum Role {
+  MASTER
+  PLAYER
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  // Codice da condividere con gli amici per entrare nella campagna
+  inviteCode  String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members    Membership[]
+  characters Character[]
+  rolls      Roll[]
+
+  @@map("campaign")
+}
+
+model Membership {
+  id       String   @id @default(cuid())
+  role     Role
+  joinedAt DateTime @default(now())
+
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, campaignId])
+  @@index([campaignId])
+  @@map("membership")
+}
+
+// ─── Personaggi ──────────────────────────────────────────────────
+
+model Character {
+  id        String   @id @default(cuid())
+  // Tutta la scheda (caratteristiche, PF, incantesimi, inventario...).
+  // La forma è validata con zod in features/characters/schema.ts
+  sheet     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownerId    String
+  owner      User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  // Un personaggio può esistere anche fuori da una campagna
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  editRequests EditRequest[]
+  rolls        Roll[]
+
+  @@index([ownerId])
+  @@index([campaignId])
+  @@map("character")
+}
+
+// Il master propone una modifica alla scheda, il giocatore la accetta o la rifiuta.
+enum EditRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model EditRequest {
+  id         String            @id @default(cuid())
+  status     EditRequestStatus @default(PENDING)
+  // Elenco di modifiche: [{ path, label, from, to }].
+  // "from" serve a controllare che il valore non sia cambiato nel frattempo.
+  changes    Json
+  message    String?
+  createdAt  DateTime          @default(now())
+  resolvedAt DateTime?
+
+  characterId   String
+  character     Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  requestedById String
+  requestedBy   User      @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([characterId, status])
+  @@map("edit_request")
+}
+
+// ─── Dadi ────────────────────────────────────────────────────────
+
+model Roll {
+  id        String   @id @default(cuid())
+  label     String // es. "Percezione", "Attacco con Mazza", "Tiro libero"
+  notation  String // es. "2d20kh1+7"
+  rolls     Int[]
+  kept      Int[]
+  modifier  Int
+  total     Int
+  createdAt DateTime @default(now())
+
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  characterId String?
+  character   Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  campaignId  String?
+  campaign    Campaign?  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, createdAt])
+  @@index([characterId, createdAt])
+  @@map("roll")
 }
