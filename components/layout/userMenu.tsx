@@ -1,0 +1,21 @@
+import Link from "next/link"
+
+import { Button } from "@/components/ui/button"
+import { getSession } from "@/lib/session"
+import { UserMenuDropdown } from "./userMenuDropdown"
+
+/** Avatar con menu se l'utente ha fatto l'accesso, altrimenti il pulsante "Accedi". */
+export async function UserMenu() {
+  const session = await getSession()
+
+  if (!session) {
+    return (
+      <Button asChild>
+        <Link href="/login">Accedi</Link>
+      </Button>
+    )
+  }
+
+  const { name, email, image } = session.user
+  return <UserMenuDropdown user={{ name, email, image }} />
+}
