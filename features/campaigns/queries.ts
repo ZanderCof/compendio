@@ -12,7 +12,9 @@ export async function listMyCampaigns(userId: string) {
           id: true,
           name: true,
           description: true,
-          _count: { select: { members: true, characters: true } },
+          _count: {
+            select: { members: true, characters: true, sessions: { where: { status: "ACTIVE" } } },
+          },
         },
       },
     },

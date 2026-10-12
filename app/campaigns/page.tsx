@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Suspense } from "react"
-import { Crown, Users } from "lucide-react"
+import { Crown, Swords, Users } from "lucide-react"
 
 import { CreateCampaignForm, JoinCampaignForm } from "@/components/campaigns/campaignForms"
 import { ReceivedInvitations } from "@/components/campaigns/receivedInvitations"
@@ -22,17 +22,20 @@ export default function CampaignsPage() {
         </p>
       </div>
 
-      <Suspense fallback={<div className="h-32 animate-pulse rounded-xl bg-muted" />}>
-        <CampaignList />
-      </Suspense>
+      {/* Sinistra: inviti e campagne. Destra: crea / unisciti. Su telefono la lista viene prima. */}
+      <div className="grid items-start gap-6 lg:grid-cols-[3fr_2fr]">
+        <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-muted" />}>
+          <CampaignList />
+        </Suspense>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <SheetSection title="Nuova campagna">
-          <CreateCampaignForm />
-        </SheetSection>
-        <SheetSection title="Unisciti a una campagna">
-          <JoinCampaignForm />
-        </SheetSection>
+        <div className="flex flex-col gap-4 lg:sticky lg:top-20">
+          <SheetSection title="Nuova campagna">
+            <CreateCampaignForm />
+          </SheetSection>
+          <SheetSection title="Unisciti a una campagna">
+            <JoinCampaignForm />
+          </SheetSection>
+        </div>
       </div>
     </main>
   )
@@ -45,48 +48,57 @@ async function CampaignList() {
     listMyInvitations(user.email),
   ])
 
-  if (campaigns.length === 0) {
-    return (
-      <>
-        <ReceivedInvitations invitations={invitations} />
-        <p className="rounded-xl border border-dashed p-6 text-center text-muted-foreground">
-          Non sei ancora in nessuna campagna. Creane una qui sotto o usa il link di un amico.
-        </p>
-      </>
-    )
-  }
-
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <ReceivedInvitations invitations={invitations} />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {campaigns.map((campaign) => (
-          <Link
-            key={campaign.id}
-            href={`/campaigns/${campaign.id}`}
-            className="flex flex-col gap-2 rounded-xl border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-secondary/30"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <h2 className="text-xl leading-tight tracking-wide">{campaign.name}</h2>
-              {campaign.role === "MASTER" ? (
-                <Badge>
-                  <Crown />
-                  Master
-                </Badge>
-              ) : (
-                <Badge variant="secondary">Giocatore</Badge>
-              )}
-            </div>
-            {campaign.description && (
-              <p className="line-clamp-2 text-sm text-muted-foreground">{campaign.description}</p>
-            )}
-            <p className="mt-auto flex items-center gap-1 text-sm text-muted-foreground">
-              <Users className="size-4" />
-              {campaign._count.members} membri · {campaign._count.characters} personaggi
-            </p>
-          </Link>
-        ))}
-      </div>
-    </>
+
+      {campaigns.length === 0 ? (
+        <p className="rounded-xl border border-dashed p-6 text-center text-muted-foreground">
+          Non sei ancora in nessuna campagna. Creane una o usa il link di un amico.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {campaigns.map((campaign) => {
+            const inSession = campaign._count.sessions > 0
+            return (
+              <li key={campaign.id}>
+                <Link
+                  href={`/campaigns/${campaign.id}`}
+                  className="flex flex-col gap-2 rounded-xl border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-secondary/30"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <h2 className="text-xl leading-tight tracking-wide">{campaign.name}</h2>
+                    <div className="flex gap-2">
+                      {inSession && (
+                        <Badge className="bg-aqua text-foreground">
+                          <Swords />
+                          Sessione in corso
+                        </Badge>
+                      )}
+                      {campaign.role === "MASTER" ? (
+                        <Badge>
+                          <Crown />
+                          Master
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">Giocatore</Badge>
+                      )}
+                    </div>
+                  </div>
+                  {campaign.description && (
+                    <p className="line-clamp-2 text-sm text-muted-foreground">{campaign.description}</p>
+                  )}
+                  <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Users className="size-4" />
+                    {campaign._count.members} {campaign._count.members === 1 ? "membro" : "membri"} ·{" "}
+                    {campaign._count.characters} {campaign._count.characters === 1 ? "personaggio" : "personaggi"}
+                  </p>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
   )
 }
