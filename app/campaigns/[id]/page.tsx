@@ -4,7 +4,12 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { Crown, Plus } from "lucide-react"
 
-import { AddCharacterToCampaign, InvitePanel } from "@/components/campaigns/campaignActions"
+import {
+  AddCharacterToCampaign,
+  InvitePanel,
+  LeaveCampaignButton,
+  RemoveMemberButton,
+} from "@/components/campaigns/campaignActions"
 import { RollLog } from "@/components/campaigns/rollLog"
 import { CharacterCard } from "@/components/characters/characterCard"
 import { SheetSection } from "@/components/characters/sheetSection"
@@ -131,9 +136,25 @@ async function CampaignLoader({ params }: { params: Params }) {
                       Master
                     </Badge>
                   )}
+                  {isMaster && member.role !== "MASTER" && (
+                    <RemoveMemberButton
+                      campaignId={campaign.id}
+                      memberId={member.user.id}
+                      memberName={member.user.name}
+                    />
+                  )}
                 </li>
               ))}
             </ul>
+            {isMaster ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Chi viene rimosso tiene i suoi personaggi, che escono dalla campagna.
+              </p>
+            ) : (
+              <div className="mt-4 border-t pt-4">
+                <LeaveCampaignButton campaignId={campaign.id} />
+              </div>
+            )}
           </SheetSection>
         </div>
       </div>

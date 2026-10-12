@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Check, Copy, LoaderCircle, RefreshCw, UserPlus } from "lucide-react"
+import { Check, Copy, LoaderCircle, LogOut, RefreshCw, UserMinus, UserPlus } from "lucide-react"
 import { toast } from "sonner"
 
+import { ConfirmButton } from "@/components/shared/confirmButton"
 import { Button } from "@/components/ui/button"
-import { regenerateInviteCode } from "@/features/campaigns/actions"
+import { leaveCampaign, regenerateInviteCode, removeMember } from "@/features/campaigns/actions"
 import { setCharacterCampaign } from "@/features/characters/actions"
 
 /** Link di invito con copia e rigenerazione. Lo vede solo il master. */
@@ -96,5 +97,44 @@ export function AddCharacterToCampaign({
         Porta in campagna
       </Button>
     </form>
+  )
+}
+
+/** Il master toglie un giocatore dalla campagna. */
+export function RemoveMemberButton({
+  campaignId,
+  memberId,
+  memberName,
+}: {
+  campaignId: string
+  memberId: string
+  memberName: string
+}) {
+  return (
+    <ConfirmButton
+      size="xs"
+      variant="ghost"
+      className="text-destructive"
+      icon={<UserMinus />}
+      label="Rimuovi"
+      confirmLabel={`Rimuovere ${memberName}?`}
+      aria-label={`Rimuovi ${memberName} dalla campagna`}
+      action={() => removeMember(campaignId, memberId)}
+    />
+  )
+}
+
+/** Un giocatore esce dalla campagna: i suoi personaggi restano suoi. */
+export function LeaveCampaignButton({ campaignId }: { campaignId: string }) {
+  return (
+    <ConfirmButton
+      size="sm"
+      variant="outline"
+      className="text-destructive"
+      icon={<LogOut />}
+      label="Esci dalla campagna"
+      confirmLabel="Tocca di nuovo per uscire"
+      action={() => leaveCampaign(campaignId)}
+    />
   )
 }

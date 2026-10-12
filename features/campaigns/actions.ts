@@ -68,3 +68,48 @@ export async function regenerateInviteCode(campaignId: string): Promise<FormStat
   if (count === 0) return { error: "Solo il master può cambiare il codice invito" }
   refresh()
 }
+
+/**
+ * Toglie un utente dalla campagna. I suoi personaggi restano suoi ma escono dalla campagna,
+ * e le proposte di modifica ancora in attesa su di loro vengono cancellate.
+ * I tiri già fatti restano nel registro.
+ */
+async function removeFromCampaign(campaignId: string, userId: string) {
+  await prisma.$transaction([
+    prisma.editRequest.deleteMany({
+      where: { status: "PENDING", character: { ownerId: userId, campaignId } },
+    }),
+    prisma.character.updateMany({ where: { ownerId: userId, campaignId }, data: { campaignId: null } }),
+    prisma.membership.delete({ where: { userId_campaignId: { userId, campaignId } } }),
+  ])
+}
+
+/** Il master rimuove un giocatore. Non può rimuovere se stesso. */
+export async function removeMember(campaignId: string, memberId: string): Promise<FormState> {
+  const user = await requireUser()
+  if (memberId === user.id) return { error: "Non puoi rimuovere te stesso" }
+
+  const [master, member] = await Promise.all([
+    prisma.membership.findFirst({ where: { campaignId, userId: user.id, role: "MASTER" } }),
+    prisma.membership.findUnique({ where: { userId_campaignId: { userId: memberId, campaignId } } }),
+  ])
+  if (!master) return { error: "Solo il master può rimuovere i giocatori" }
+  if (!member) return { error: "Questo utente non fa più parte della campagna" }
+  if (member.role === "MASTER") return { error: "Non puoi rimuovere un altro master" }
+
+  await removeFromCampaign(campaignId, memberId)
+  refresh()
+}
+
+/** Un giocatore esce dalla campagna. Il master no: la campagna resterebbe senza master. */
+export async function leaveCampaign(campaignId: string): Promise<FormState> {
+  const user = await requireUser()
+  const membership = await prisma.membership.findUnique({
+    where: { userId_campaignId: { userId: user.id, campaignId } },
+  })
+  if (!membership) return { error: "Non fai parte di questa campagna" }
+  if (membership.role === "MASTER") return { error: "Il master non può uscire dalla sua campagna" }
+
+  await removeFromCampaign(campaignId, user.id)
+  redirect("/campaigns")
+}

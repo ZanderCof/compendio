@@ -16,10 +16,9 @@ import {
   Swords,
   Trash2,
 } from "lucide-react"
-import { useState, useTransition } from "react"
-import { toast } from "sonner"
 
 import { AdvantageToggle } from "@/components/dice/advantageToggle"
+import { ConfirmButton } from "@/components/shared/confirmButton"
 import { DiceProvider } from "@/components/dice/diceProvider"
 import { DiceTray } from "@/components/dice/diceTray"
 import { Button } from "@/components/ui/button"
@@ -69,29 +68,16 @@ const SAVE_STATUS = {
   error: { icon: CircleAlert, label: "Non salvato", className: "text-destructive" },
 } as const
 
-/** Elimina con doppio tocco: il primo chiede conferma, il secondo elimina davvero. */
 function DeleteCharacterButton() {
   const { character } = useCharacter()
-  const [confirming, setConfirming] = useState(false)
-  const [pending, startTransition] = useTransition()
-
-  function handleClick() {
-    if (!confirming) {
-      setConfirming(true)
-      setTimeout(() => setConfirming(false), 4000)
-      return
-    }
-    startTransition(async () => {
-      const result = await deleteCharacter(character.id)
-      if (result?.error) toast.error(result.error)
-    })
-  }
-
   return (
-    <Button variant="destructive" size="sm" onClick={handleClick} disabled={pending}>
-      <Trash2 />
-      {confirming ? "Tocca di nuovo per eliminare" : "Elimina"}
-    </Button>
+    <ConfirmButton
+      size="sm"
+      icon={<Trash2 />}
+      label="Elimina"
+      confirmLabel="Tocca di nuovo per eliminare"
+      action={() => deleteCharacter(character.id)}
+    />
   )
 }
 
