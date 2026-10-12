@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { Dices } from "lucide-react"
 
+import { ThemeToggle } from "@/components/theme/themeToggle"
 import { MainNav, NavItems } from "./mainNav"
 import { UserMenu } from "./userMenu"
 
@@ -24,7 +25,8 @@ export function Navbar() {
           Compendio
         </Link>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-1">
+          <ThemeToggle />
           {/* La sessione si legge dai cookie: la navbar resta statica, il menu utente arriva subito dopo */}
           <Suspense fallback={<div className="size-8 animate-pulse rounded-full bg-muted" />}>
             <UserMenu />

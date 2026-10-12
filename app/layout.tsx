@@ -3,6 +3,7 @@ import { Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { ThemeProvider } from "@/components/theme/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -30,13 +31,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="it"
+      // next-themes aggiunge la classe del tema prima che React parta: la differenza è voluta
+      suppressHydrationWarning
       className={`${nodesto.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
-        <div className="flex flex-1 flex-col">{children}</div>
-        <Footer />
-        <Toaster position="top-center" offset={72} mobileOffset={64} />
+        <ThemeProvider>
+          <Navbar />
+          <div className="flex flex-1 flex-col">{children}</div>
+          <Footer />
+          <Toaster position="top-center" offset={72} mobileOffset={64} />
+        </ThemeProvider>
       </body>
     </html>
   );
