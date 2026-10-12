@@ -42,7 +42,6 @@ async function CharacterSheetLoader({ params }: { params: Params }) {
       initial={result.character}
       access={result.access}
       requests={result.requests}
-      inCampaign={result.campaignId !== null}
     />
   )
 }

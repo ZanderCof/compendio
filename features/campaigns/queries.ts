@@ -59,3 +59,17 @@ export async function getCampaignByInviteCode(code: string) {
     },
   })
 }
+
+/** Inviti in attesa per l'email dell'utente, con chi l'ha invitato. */
+export async function listMyInvitations(email: string) {
+  return prisma.invitation.findMany({
+    where: { email: email.toLowerCase(), status: "PENDING" },
+    select: {
+      id: true,
+      createdAt: true,
+      campaign: { select: { name: true, description: true } },
+      invitedBy: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  })
+}

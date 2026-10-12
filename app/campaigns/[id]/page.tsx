@@ -8,17 +8,18 @@ import {
   AddCharacterToCampaign,
   InvitePanel,
   LeaveCampaignButton,
-  RemoveMemberButton,
 } from "@/components/campaigns/campaignActions"
-import { RollLog } from "@/components/campaigns/rollLog"
-import { CharacterCard } from "@/components/characters/characterCard"
+import { CampaignChat } from "@/components/campaigns/campaignChat"
+import { CampaignGroup } from "@/components/campaigns/campaignGroup"
+import { SessionPanel } from "@/components/campaigns/sessionPanel"
 import { SheetSection } from "@/components/characters/sheetSection"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { getCampaignGroup } from "@/features/campaigns/group"
 import { getCampaignForMember } from "@/features/campaigns/queries"
-import { listCampaignCharacters, listMyCharacters } from "@/features/characters/queries"
-import { listCampaignRolls } from "@/features/rolls/queries"
+import { listMyCharacters } from "@/features/characters/queries"
+import { listRecentMessages } from "@/features/chat/queries"
+import { getSessionState } from "@/features/sessions/queries"
 import { requireUser } from "@/lib/session"
 
 export const metadata: Metadata = { title: "Campagna · Compendio" }
@@ -40,10 +41,11 @@ async function CampaignLoader({ params }: { params: Params }) {
   const campaign = await getCampaignForMember(id, user.id)
   if (!campaign) notFound()
 
-  const [characters, myCharacters, rolls] = await Promise.all([
-    listCampaignCharacters(campaign.id),
+  const [group, myCharacters, session, messages] = await Promise.all([
+    getCampaignGroup(campaign.id, user.id),
     listMyCharacters(user.id),
-    listCampaignRolls(campaign.id),
+    getSessionState(campaign.id, user.id),
+    listRecentMessages(campaign.id),
   ])
   const isMaster = campaign.role === "MASTER"
   const addable = myCharacters
@@ -69,7 +71,9 @@ async function CampaignLoader({ params }: { params: Params }) {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <SessionPanel campaignId={campaign.id} isMaster={isMaster} initial={session} />
+
+      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         <SheetSection
           title="Il gruppo"
           action={
@@ -81,23 +85,7 @@ async function CampaignLoader({ params }: { params: Params }) {
             </Button>
           }
         >
-          {characters.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nessun personaggio in questa campagna. Creane uno o porta uno dei tuoi.
-            </p>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {characters.map((character) => (
-                <CharacterCard
-                  key={character.id}
-                  character={character}
-                  showOwner
-                  // La scheda la apre il proprietario o il master
-                  href={isMaster || character.ownerId === user.id ? `/characters/${character.id}` : undefined}
-                />
-              ))}
-            </div>
-          )}
+          <CampaignGroup campaignId={campaign.id} initial={group} isMaster={isMaster} viewerId={user.id} />
 
           {addable.length > 0 && (
             <div className="mt-4 border-t pt-4">
@@ -105,57 +93,28 @@ async function CampaignLoader({ params }: { params: Params }) {
               <AddCharacterToCampaign campaignId={campaign.id} characters={addable} />
             </div>
           )}
+
+          {isMaster ? (
+            <p className="mt-4 text-xs text-muted-foreground">
+              Chi viene rimosso tiene i suoi personaggi, che escono dalla campagna.
+            </p>
+          ) : (
+            <div className="mt-4 border-t pt-4">
+              <LeaveCampaignButton campaignId={campaign.id} />
+            </div>
+          )}
         </SheetSection>
 
         <div className="flex flex-col gap-6">
+          <SheetSection title="Chat">
+            <CampaignChat campaignId={campaign.id} viewerId={user.id} initial={messages} />
+          </SheetSection>
+
           {isMaster && campaign.inviteCode && (
-            <SheetSection title="Invita i giocatori">
+            <SheetSection title="Link di invito">
               <InvitePanel campaignId={campaign.id} inviteCode={campaign.inviteCode} />
             </SheetSection>
           )}
-
-          <SheetSection title="Registro dei tiri">
-            <RollLog campaignId={campaign.id} initial={rolls} />
-          </SheetSection>
-
-          <SheetSection title="Membri">
-            <ul className="flex flex-col gap-2">
-              {campaign.members.map((member) => (
-                <li key={member.user.id} className="flex items-center gap-3">
-                  <Avatar className="size-8">
-                    {member.user.image && <AvatarImage src={member.user.image} alt="" />}
-                    <AvatarFallback>{member.user.name.slice(0, 2)}</AvatarFallback>
-                  </Avatar>
-                  <span className="flex-1 truncate">
-                    {member.user.name}
-                    {member.user.id === user.id && <span className="text-muted-foreground"> (tu)</span>}
-                  </span>
-                  {member.role === "MASTER" && (
-                    <Badge>
-                      <Crown />
-                      Master
-                    </Badge>
-                  )}
-                  {isMaster && member.role !== "MASTER" && (
-                    <RemoveMemberButton
-                      campaignId={campaign.id}
-                      memberId={member.user.id}
-                      memberName={member.user.name}
-                    />
-                  )}
-                </li>
-              ))}
-            </ul>
-            {isMaster ? (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Chi viene rimosso tiene i suoi personaggi, che escono dalla campagna.
-              </p>
-            ) : (
-              <div className="mt-4 border-t pt-4">
-                <LeaveCampaignButton campaignId={campaign.id} />
-              </div>
-            )}
-          </SheetSection>
         </div>
       </div>
     </>

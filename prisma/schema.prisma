@@ -12,20 +12,25 @@ datasource db {
 // ─── Autenticazione (tabelle richieste da Better Auth) ───────────
 
 model User {
-  id            String   @id
+  id            String    @id
   name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  email         String    @unique
+  emailVerified Boolean   @default(false)
   image         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  // Ultima volta che il sito era aperto: serve per lo stato online/offline
+  lastSeenAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  sessions      Session[]
-  accounts      Account[]
-  memberships   Membership[]
-  characters    Character[]
-  rolls         Roll[]
-  editRequests  EditRequest[]
+  sessions        Session[]
+  accounts        Account[]
+  memberships     Membership[]
+  characters      Character[]
+  rolls           Roll[]
+  editRequests    EditRequest[]
+  invitationsSent Invitation[]
+  sessionsStarted GameSession[]
+  chatMessages    ChatMessage[]
 
   @@map("user")
 }
@@ -96,9 +101,12 @@ model Campaign {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  members    Membership[]
-  characters Character[]
-  rolls      Roll[]
+  members     Membership[]
+  characters  Character[]
+  rolls       Roll[]
+  invitations Invitation[]
+  sessions    GameSession[]
+  messages    ChatMessage[]
 
   @@map("campaign")
 }
@@ -107,6 +115,8 @@ model Membership {
   id       String   @id @default(cuid())
   role     Role
   joinedAt DateTime @default(now())
+  // Il giocatore ha premuto "Sono pronto" per la prossima sessione
+  ready    Boolean  @default(false)
 
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -116,6 +126,69 @@ model Membership {
   @@unique([userId, campaignId])
   @@index([campaignId])
   @@map("membership")
+}
+
+// Invito a una persona precisa, per email (l'account Google con cui accederà).
+// Chi entra con il link senza invito diventa membro direttamente.
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model Invitation {
+  id          String           @id @default(cuid())
+  // Sempre in minuscolo, per confrontarla con l'email dell'account
+  email       String
+  status      InvitationStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  respondedAt DateTime?
+
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  invitedById String
+  invitedBy   User     @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, email])
+  @@index([email, status])
+  @@map("invitation")
+}
+
+// Una serata di gioco: il master la avvia, i giocatori ci entrano, il master la termina.
+// Per campagna al massimo una sessione ACTIVE alla volta (controllato dalle azioni).
+enum SessionStatus {
+  ACTIVE
+  ENDED
+}
+
+model GameSession {
+  id        String        @id @default(cuid())
+  status    SessionStatus @default(ACTIVE)
+  startedAt DateTime      @default(now())
+  endedAt   DateTime?
+
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  startedById String
+  startedBy   User     @relation(fields: [startedById], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, status])
+  @@map("game_session")
+}
+
+// Chat della campagna: la vedono e la scrivono solo i membri.
+model ChatMessage {
+  id        String   @id @default(cuid())
+  body      String
+  createdAt DateTime @default(now())
+
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, createdAt])
+  @@map("chat_message")
 }
 
 // ─── Personaggi ──────────────────────────────────────────────────

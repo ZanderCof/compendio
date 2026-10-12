@@ -67,14 +67,6 @@ export async function listMyCharacters(userId: string) {
   return rows.map(toSummary)
 }
 
-export async function listCampaignCharacters(campaignId: string) {
-  const rows = await prisma.character.findMany({
-    where: { campaignId },
-    select: { ...summarySelect, ownerId: true },
-    orderBy: { createdAt: "asc" },
-  })
-  return rows.map((row) => ({ ...toSummary(row), ownerId: row.ownerId }))
-}
 
 /** Scheda completa, solo se chi la chiede ne ha diritto. Altrimenti null (la pagina mostrerà 404). */
 export async function getCharacterForViewer(
@@ -84,7 +76,6 @@ export async function getCharacterForViewer(
   character: Character
   access: CharacterAccess
   requests: EditRequestView[]
-  campaignId: string | null
 } | null> {
   const row = await prisma.character.findUnique({
     where: { id },
@@ -92,7 +83,6 @@ export async function getCharacterForViewer(
       id: true,
       sheet: true,
       ownerId: true,
-      campaignId: true,
       campaign: { select: { members: { where: { userId, role: "MASTER" }, select: { id: true } } } },
     },
   })
@@ -106,6 +96,5 @@ export async function getCharacterForViewer(
     character: { ...parseSheet(row.id, row.sheet), id: row.id },
     access,
     requests: await listPendingRequests(row.id),
-    campaignId: row.campaignId,
   }
 }

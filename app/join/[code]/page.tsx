@@ -1,11 +1,12 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { Suspense } from "react"
-import { LogIn, Users } from "lucide-react"
+import { LogIn, Users, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { joinCampaign } from "@/features/campaigns/actions"
+import { declineInviteLink } from "@/features/campaigns/invitations"
 import { getCampaignByInviteCode } from "@/features/campaigns/queries"
 import { requireUser } from "@/lib/session"
 
@@ -52,6 +53,12 @@ async function Invite({ params }: { params: Params }) {
     await joinCampaign(code)
   }
 
+  async function decline() {
+    "use server"
+    // Registra il rifiuto: il master lo vede nel gruppo
+    await declineInviteLink(code)
+  }
+
   return (
     <Card className="relative w-full max-w-sm overflow-hidden">
       <div className="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-plum via-periwinkle to-aqua" />
@@ -68,6 +75,12 @@ async function Invite({ params }: { params: Params }) {
           <Button type="submit" size="lg" className="w-full">
             <LogIn />
             Unisciti come giocatore
+          </Button>
+        </form>
+        <form action={decline} className="w-full">
+          <Button type="submit" variant="ghost" className="w-full text-muted-foreground">
+            <X />
+            No grazie
           </Button>
         </form>
       </CardContent>

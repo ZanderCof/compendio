@@ -6,6 +6,7 @@ import { z } from "zod"
 
 import { prisma } from "@/lib/prisma"
 import { requireUser } from "@/lib/session"
+import { getCampaignGroup, type GroupEntry } from "./group"
 
 export type FormState = { error?: string } | undefined
 
@@ -42,11 +43,18 @@ export async function joinCampaign(code: string): Promise<FormState> {
   })
   if (!campaign) return { error: "Codice invito non valido o scaduto" }
 
-  await prisma.membership.upsert({
-    where: { userId_campaignId: { userId: user.id, campaignId: campaign.id } },
-    create: { userId: user.id, campaignId: campaign.id, role: "PLAYER" },
-    update: {},
-  })
+  await prisma.$transaction([
+    prisma.membership.upsert({
+      where: { userId_campaignId: { userId: user.id, campaignId: campaign.id } },
+      create: { userId: user.id, campaignId: campaign.id, role: "PLAYER" },
+      update: {},
+    }),
+    // Se il master l'aveva anche invitato per email, l'invito risulta accettato
+    prisma.invitation.updateMany({
+      where: { campaignId: campaign.id, email: user.email.toLowerCase(), status: { not: "ACCEPTED" } },
+      data: { status: "ACCEPTED", respondedAt: new Date() },
+    }),
+  ])
   redirect(`/campaigns/${campaign.id}`)
 }
 
@@ -112,4 +120,14 @@ export async function leaveCampaign(campaignId: string): Promise<FormState> {
 
   await removeFromCampaign(campaignId, user.id)
   redirect("/campaigns")
+}
+
+/** Il gruppo aggiornato, per la lista che si rinfresca da sola. Solo per i membri. */
+export async function fetchCampaignGroup(campaignId: string): Promise<GroupEntry[]> {
+  const user = await requireUser()
+  const member = await prisma.membership.findUnique({
+    where: { userId_campaignId: { userId: user.id, campaignId } },
+  })
+  if (!member) return []
+  return getCampaignGroup(campaignId, user.id)
 }

@@ -23,7 +23,7 @@ const timeFormat = new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "
 
 /** Pulsante fisso in basso a destra: apre il lanciadadi libero e la cronologia dei tiri. */
 export function DiceTray() {
-  const { rollD20, rollNotation, history, clearHistory, logged } = useDice()
+  const { rollD20, rollNotation, history, clearHistory } = useDice()
   const [notation, setNotation] = useState("")
 
   return (
@@ -46,11 +46,7 @@ export function DiceTray() {
       <SheetContent className="w-full gap-0 sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="text-xl tracking-wide">Dadi</SheetTitle>
-          <SheetDescription>
-            {logged
-              ? "I tiri li fa il server e finiscono nel registro della campagna."
-              : "Tiri liberi e cronologia della sessione."}
-          </SheetDescription>
+          <SheetDescription>Tiri liberi e cronologia della sessione.</SheetDescription>
         </SheetHeader>
 
         <div className="flex flex-col gap-4 border-b px-4 pb-4">
