@@ -8,6 +8,7 @@ import { initiative, proficiencyBonus, signed } from "@/features/characters/rule
 import { useCharacter } from "./characterProvider"
 import { HpEditor } from "./hpEditor"
 import { NumberField } from "./numberField"
+import { initials } from "@/lib/initials"
 
 function QuickStat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -23,18 +24,14 @@ function QuickStat({ label, children }: { label: string; children: React.ReactNo
 export function CharacterHeader() {
   const { character, dispatch, editing } = useCharacter()
   const { hitPoints } = character
-  const initials = character.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
+  const initialsText = initials(character.name)
 
   return (
     <header className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         {/* Avatar: per ora le iniziali, poi un'immagine */}
         <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-plum to-violet text-2xl text-primary-foreground ring-2 ring-primary/40">
-          {initials}
+          {initialsText}
         </div>
 
         <div className="min-w-0 flex-1">

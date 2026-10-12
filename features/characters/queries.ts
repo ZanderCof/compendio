@@ -1,6 +1,7 @@
 import "server-only"
 
 import { prisma } from "@/lib/prisma"
+import { listPendingRequests, type EditRequestView } from "@/features/editRequests/queries"
 import { characterSheetSchema } from "./schema"
 import type { Character, CharacterSheet } from "./types"
 
@@ -17,6 +18,8 @@ export type CharacterSummary = {
   armorClass: number
   ownerName: string
   campaign: { id: string; name: string } | null
+  /** Proposte del master in attesa di risposta */
+  pendingRequests: number
 }
 
 function parseSheet(id: string, sheet: unknown): CharacterSheet {
@@ -30,6 +33,7 @@ function toSummary(row: {
   sheet: unknown
   owner: { name: string }
   campaign: { id: string; name: string } | null
+  _count: { editRequests: number }
 }): CharacterSummary {
   const sheet = parseSheet(row.id, row.sheet)
   return {
@@ -42,6 +46,7 @@ function toSummary(row: {
     armorClass: sheet.armorClass,
     ownerName: row.owner.name,
     campaign: row.campaign,
+    pendingRequests: row._count.editRequests,
   }
 }
 
@@ -50,6 +55,7 @@ const summarySelect = {
   sheet: true,
   owner: { select: { name: true } },
   campaign: { select: { id: true, name: true } },
+  _count: { select: { editRequests: { where: { status: "PENDING" } } } },
 } as const
 
 export async function listMyCharacters(userId: string) {
@@ -74,7 +80,7 @@ export async function listCampaignCharacters(campaignId: string) {
 export async function getCharacterForViewer(
   id: string,
   userId: string
-): Promise<{ character: Character; access: CharacterAccess } | null> {
+): Promise<{ character: Character; access: CharacterAccess; requests: EditRequestView[] } | null> {
   const row = await prisma.character.findUnique({
     where: { id },
     select: {
@@ -90,5 +96,9 @@ export async function getCharacterForViewer(
     row.ownerId === userId ? "owner" : row.campaign?.members.length ? "master" : null
   if (!access) return null
 
-  return { character: { ...parseSheet(row.id, row.sheet), id: row.id }, access }
+  return {
+    character: { ...parseSheet(row.id, row.sheet), id: row.id },
+    access,
+    requests: await listPendingRequests(row.id),
+  }
 }

@@ -6,6 +6,7 @@ import {
   Feather,
   ListChecks,
   CircleAlert,
+  Crown,
   CircleCheck,
   Eye,
   LoaderCircle,
@@ -25,11 +26,13 @@ import { Button } from "@/components/ui/button"
 import { deleteCharacter } from "@/features/characters/actions"
 import type { CharacterAccess } from "@/features/characters/queries"
 import type { Character } from "@/features/characters/types"
+import type { EditRequestView } from "@/features/editRequests/queries"
 import { AbilitiesSection } from "./abilitiesSection"
 import { AttacksTable } from "./attacksTable"
 import { CharacterHeader } from "./characterHeader"
 import { CharacterProvider, useCharacter } from "./characterProvider"
 import { CombatStats } from "./combatStats"
+import { EditRequestsPanel, ProposalBar } from "./editRequests"
 import { EquipmentSection } from "./equipmentSection"
 import { FeaturesSection, ProficienciesSection } from "./featuresSection"
 import { PersonalitySection } from "./personalitySection"
@@ -41,12 +44,14 @@ import { SpellcastingSection } from "./spellcastingSection"
 export function CharacterSheet({
   initial,
   access,
+  requests,
 }: {
   initial: Character
   access: CharacterAccess
+  requests: EditRequestView[]
 }) {
   return (
-    <CharacterProvider initial={initial} access={access}>
+    <CharacterProvider initial={initial} access={access} initialRequests={requests}>
       <DiceProvider>
         <SheetBody />
         <DiceTray />
@@ -88,16 +93,24 @@ function DeleteCharacterButton() {
 }
 
 function SheetToolbar() {
-  const { editing, setEditing, readOnly, saveStatus } = useCharacter()
+  const { editing, setEditing, access, proposing, startProposal, saveStatus } = useCharacter()
 
-  if (readOnly) {
+  if (access === "master") {
+    // Mentre prepara una proposta, al posto della barra c'è ProposalBar
+    if (proposing) return <ProposalBar />
     return (
       <div className="flex flex-wrap items-center justify-between gap-2">
         <AdvantageToggle />
-        <span className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
-          <Eye className="size-3.5" />
-          Sola lettura: è la scheda di un giocatore
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+            <Eye className="size-3.5" />
+            Scheda di un giocatore
+          </span>
+          <Button size="sm" onClick={startProposal}>
+            <Crown />
+            Proponi modifiche
+          </Button>
+        </div>
       </div>
     )
   }
@@ -176,6 +189,7 @@ function SheetBody() {
   return (
     <>
       <CharacterHeader />
+      <EditRequestsPanel />
       <SheetToolbar />
       <SheetTabs tabs={tabs} />
     </>

@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { signOut } from "@/lib/auth-client"
+import { initials } from "@/lib/initials"
 
 type UserMenuDropdownProps = {
   user: { name: string; email: string; image?: string | null }
@@ -21,11 +22,7 @@ type UserMenuDropdownProps = {
 
 export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
   const router = useRouter()
-  const initials = user.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
+  const initialsText = initials(user.name)
 
   async function handleSignOut() {
     await signOut()
@@ -41,7 +38,7 @@ export function UserMenuDropdown({ user }: UserMenuDropdownProps) {
       >
         <Avatar className="ring-2 ring-primary/40">
           {user.image && <AvatarImage src={user.image} alt="" />}
-          <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
+          <AvatarFallback className="bg-primary text-primary-foreground">{initialsText}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

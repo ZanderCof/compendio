@@ -1,9 +1,10 @@
 import Link from "next/link"
-import { Heart, Shield } from "lucide-react"
+import { Crown, Heart, Shield } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import type { CharacterSummary } from "@/features/characters/queries"
 import { cn } from "@/lib/utils"
+import { initials } from "@/lib/initials"
 
 /** Riquadro riassuntivo di un personaggio, usato nelle liste. Con `href` diventa un link alla scheda. */
 export function CharacterCard({
@@ -17,17 +18,13 @@ export function CharacterCard({
 }) {
   const { hitPoints } = character
   const hpPercent = Math.max(0, Math.min(100, Math.round((hitPoints.current / hitPoints.max) * 100)))
-  const initials = character.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
+  const initialsText = initials(character.name)
 
   const content = (
     <>
       <div className="flex items-center gap-3">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-plum to-violet text-lg text-primary-foreground">
-          {initials}
+          {initialsText}
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-lg leading-tight tracking-wide">{character.name}</h3>
@@ -56,8 +53,16 @@ export function CharacterCard({
         </div>
       </div>
 
-      {(showOwner || character.campaign) && (
+      {(showOwner || character.campaign || character.pendingRequests > 0) && (
         <div className="mt-3 flex flex-wrap gap-2">
+          {character.pendingRequests > 0 && (
+            <Badge>
+              <Crown />
+              {character.pendingRequests === 1
+                ? "1 proposta del master"
+                : `${character.pendingRequests} proposte del master`}
+            </Badge>
+          )}
           {showOwner && <Badge variant="secondary">Giocatore: {character.ownerName}</Badge>}
           {character.campaign && !showOwner && <Badge variant="outline">{character.campaign.name}</Badge>}
         </div>

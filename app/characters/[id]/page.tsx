@@ -37,5 +37,5 @@ async function CharacterSheetLoader({ params }: { params: Params }) {
   // Stesso 404 sia se non esiste sia se non è tuo: non si rivela l'esistenza di schede altrui
   if (!result) notFound()
 
-  return <CharacterSheet initial={result.character} access={result.access} />
+  return <CharacterSheet initial={result.character} access={result.access} requests={result.requests} />
 }
