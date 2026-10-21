@@ -2,6 +2,7 @@ import "server-only"
 
 import { prisma } from "@/lib/prisma"
 import { listPendingRequests, type EditRequestView } from "@/features/editRequests/queries"
+import { abilityModifier } from "./rules"
 import { characterSheetSchema } from "./schema"
 import type { Character, CharacterSheet } from "./types"
 
@@ -16,6 +17,8 @@ export type CharacterSummary = {
   level: number
   hitPoints: CharacterSheet["hitPoints"]
   armorClass: number
+  /** Modificatore di Destrezza, come nella scheda */
+  initiative: number
   ownerName: string
   campaign: { id: string; name: string } | null
   /** Proposte del master in attesa di risposta */
@@ -44,6 +47,7 @@ function toSummary(row: {
     level: sheet.level,
     hitPoints: sheet.hitPoints,
     armorClass: sheet.armorClass,
+    initiative: abilityModifier(sheet.abilities.dex),
     ownerName: row.owner.name,
     campaign: row.campaign,
     pendingRequests: row._count.editRequests,

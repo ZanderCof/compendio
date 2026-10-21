@@ -12,6 +12,12 @@ export async function listMyCampaigns(userId: string) {
           id: true,
           name: true,
           description: true,
+          // Per la pila di avatar nella card: il master per primo
+          members: {
+            select: { user: { select: { id: true, name: true, image: true } } },
+            orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
+            take: 5,
+          },
           _count: {
             select: { members: true, characters: true, sessions: { where: { status: "ACTIVE" } } },
           },
@@ -20,7 +26,11 @@ export async function listMyCampaigns(userId: string) {
     },
     orderBy: { joinedAt: "desc" },
   })
-  return memberships.map(({ role, campaign }) => ({ role, ...campaign }))
+  return memberships.map(({ role, campaign: { members, ...campaign } }) => ({
+    role,
+    ...campaign,
+    memberPreview: members.map((m) => m.user),
+  }))
 }
 
 /** Campagna con membri, solo se l'utente ne fa parte. Altrimenti null. */

@@ -15,8 +15,10 @@ const campaignSchema = z.object({
   description: z.string().trim().max(500).optional(),
 })
 
-/** Crea la campagna: chi la crea ne è il master. */
-export async function createCampaign(_prev: FormState, formData: FormData): Promise<FormState> {
+export type CreateCampaignState = { error?: string; createdId?: string } | undefined
+
+/** Crea la campagna: chi la crea ne è il master. Si resta sulla lista, dove la nuova card entra in cima. */
+export async function createCampaign(_prev: CreateCampaignState, formData: FormData): Promise<CreateCampaignState> {
   const user = await requireUser()
   const parsed = campaignSchema.safeParse({
     name: formData.get("name"),
@@ -31,7 +33,8 @@ export async function createCampaign(_prev: FormState, formData: FormData): Prom
     },
     select: { id: true },
   })
-  redirect(`/campaigns/${campaign.id}`)
+  refresh()
+  return { createdId: campaign.id }
 }
 
 /** Entra in una campagna con il codice invito. Se ci sei già, porta direttamente alla campagna. */

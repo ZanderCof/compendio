@@ -307,10 +307,50 @@ html.theme-switching::view-transition-group(site-header) {
   }
 }
 
+/* Bordo luminoso che gira (StarBorder di React Bits): card della campagna con sessione in corso */
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.border-glow::before {
+  content: "";
+  position: absolute;
+  /* La card ha overflow nascosto: l'anello sta all'interno del bordo */
+  inset: 0;
+  z-index: 1;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--border-angle),
+    transparent 0 55%,
+    var(--palette-violet) 70%,
+    var(--palette-aqua) 85%,
+    transparent 100%
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+  animation: border-spin 4s linear infinite;
+}
+
+@keyframes border-spin {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .text-gradient-pan,
   .banner-animated,
   .text-shiny {
     animation: none;
+  }
+  /* Senza rotazione: bordo pieno e fermo */
+  .border-glow::before {
+    animation: none;
+    background: linear-gradient(120deg, var(--palette-violet), var(--palette-aqua));
   }
 }

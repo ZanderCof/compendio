@@ -1,12 +1,10 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import { Suspense } from "react"
-import { CalendarDays, Crown, Swords, Users } from "lucide-react"
 
-import { CreateCampaignForm, JoinCampaignForm } from "@/components/campaigns/campaignForms"
+import { D20 } from "@/components/brand/d20"
+import { JoinCampaignDialog, NewCampaignDialog } from "@/components/campaigns/campaignForms"
+import { CampaignGrid } from "@/components/campaigns/campaignGrid"
 import { ReceivedInvitations } from "@/components/campaigns/receivedInvitations"
-import { SheetSection } from "@/components/characters/sheetSection"
-import { Badge } from "@/components/ui/badge"
 import { listMyCampaigns, listMyInvitations } from "@/features/campaigns/queries"
 import { campaignsAwaitingVote } from "@/features/polls/queries"
 import { requireUser } from "@/lib/session"
@@ -16,29 +14,31 @@ export const metadata: Metadata = { title: "Campagne · Compendio" }
 export default function CampaignsPage() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-4 md:py-8">
-      <div>
-        <h1 className="text-4xl tracking-wide">Le tue campagne</h1>
-        <p className="text-muted-foreground">
-          Crea una campagna come master o entra in quella di un amico.
-        </p>
-      </div>
-
-      {/* Sinistra: inviti e campagne. Destra: crea / unisciti. Su telefono la lista viene prima. */}
-      <div className="grid items-start gap-6 lg:grid-cols-[3fr_2fr]">
-        <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-muted" />}>
-          <CampaignList />
-        </Suspense>
-
-        <div className="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--nav-h)+1rem)]">
-          <SheetSection title="Nuova campagna">
-            <CreateCampaignForm />
-          </SheetSection>
-          <SheetSection title="Unisciti a una campagna">
-            <JoinCampaignForm />
-          </SheetSection>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-4xl tracking-wide">Le tue campagne</h1>
+          <p className="text-muted-foreground">Crea una campagna come master o entra in quella di un amico.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <JoinCampaignDialog />
+          <NewCampaignDialog />
         </div>
       </div>
+
+      <Suspense fallback={<CardsSkeleton />}>
+        <CampaignList />
+      </Suspense>
     </main>
+  )
+}
+
+function CardsSkeleton() {
+  return (
+    <div className="grid animate-pulse gap-4 lg:grid-cols-2">
+      {Array.from({ length: 2 }, (_, i) => (
+        <div key={i} className="h-36 rounded-2xl bg-muted" />
+      ))}
+    </div>
   )
 }
 
@@ -55,57 +55,25 @@ async function CampaignList() {
       <ReceivedInvitations invitations={invitations} />
 
       {campaigns.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-6 text-center text-muted-foreground">
-          Non sei ancora in nessuna campagna. Creane una o usa il link di un amico.
-        </p>
+        <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl border border-dashed px-6 py-12 text-center">
+          <div
+            aria-hidden
+            className="absolute top-6 size-40 rounded-full bg-linear-to-br from-violet/30 via-periwinkle/20 to-aqua/30 blur-3xl"
+          />
+          <D20 value={12} motion="spin" className="relative size-24" />
+          <h2 className="relative text-3xl tracking-wide">Nessuna campagna, per ora</h2>
+          <p className="relative max-w-sm text-muted-foreground">
+            Creane una e diventa master, oppure entra con il link che ti ha mandato un amico.
+          </p>
+          <div className="relative flex flex-wrap justify-center gap-2">
+            <JoinCampaignDialog />
+            <NewCampaignDialog />
+          </div>
+        </div>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {campaigns.map((campaign) => {
-            const inSession = campaign._count.sessions > 0
-            return (
-              <li key={campaign.id}>
-                <Link
-                  href={`/campaigns/${campaign.id}`}
-                  className="flex flex-col gap-2 rounded-xl border bg-card p-4 transition-colors hover:border-primary/50 hover:bg-secondary/30"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <h2 className="text-xl leading-tight tracking-wide">{campaign.name}</h2>
-                    <div className="flex flex-wrap gap-2">
-                      {awaiting.includes(campaign.id) && (
-                        <Badge variant="outline" className="border-primary text-primary">
-                          <CalendarDays />
-                          Vota le date
-                        </Badge>
-                      )}
-                      {inSession && (
-                        <Badge className="bg-aqua text-foreground">
-                          <Swords />
-                          Sessione in corso
-                        </Badge>
-                      )}
-                      {campaign.role === "MASTER" ? (
-                        <Badge>
-                          <Crown />
-                          Master
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">Giocatore</Badge>
-                      )}
-                    </div>
-                  </div>
-                  {campaign.description && (
-                    <p className="line-clamp-2 text-sm text-muted-foreground">{campaign.description}</p>
-                  )}
-                  <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Users className="size-4" />
-                    {campaign._count.members} {campaign._count.members === 1 ? "membro" : "membri"} ·{" "}
-                    {campaign._count.characters} {campaign._count.characters === 1 ? "personaggio" : "personaggi"}
-                  </p>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+        <CampaignGrid
+          campaigns={campaigns.map((campaign) => ({ ...campaign, awaitingVote: awaiting.includes(campaign.id) }))}
+        />
       )}
     </div>
   )
