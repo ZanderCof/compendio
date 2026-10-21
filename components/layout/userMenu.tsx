@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { pendingRequestCount } from "@/features/admin/queries"
 import { isAdminEmail } from "@/lib/admin"
 import { getSession } from "@/lib/session"
+import { MissionResultBanner } from "@/components/missions/missionResultBanner"
 import { PresenceHeartbeat } from "@/components/presence/presenceHeartbeat"
 import { ThemeToggle } from "@/components/theme/themeToggle"
 import { UserMenuDropdown } from "./userMenuDropdown"
@@ -32,6 +33,8 @@ export async function UserMenu() {
     <>
       {/* Solo per chi ha fatto l'accesso: aggiorna lo stato online */}
       <PresenceHeartbeat />
+      {/* Banner quando un personaggio torna da una missione */}
+      <MissionResultBanner />
       <UserMenuDropdown user={{ name, email, image }} isAdmin={isAdmin} pendingRequests={pending} />
     </>
   )

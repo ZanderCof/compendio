@@ -3,6 +3,7 @@
 import { refresh } from "next/cache"
 import { redirect } from "next/navigation"
 
+import { canJoinCampaign, MISSION_CAMPAIGN_ERROR } from "@/features/missions/rules"
 import { prisma } from "@/lib/prisma"
 import { requireUser } from "@/lib/session"
 import { buildSheet, newCharacterSchema, type NewCharacterInput } from "./create"
@@ -16,12 +17,14 @@ export async function createCharacter(input: NewCharacterInput): Promise<ActionR
   const parsed = newCharacterSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dati non validi" }
 
-  const { campaignId } = parsed.data
+  const { campaignId, missionsEnabled } = parsed.data
   if (campaignId) {
     const member = await prisma.membership.findUnique({
       where: { userId_campaignId: { userId: user.id, campaignId } },
+      select: { campaign: { select: { allowMissionCharacters: true } } },
     })
     if (!member) return { error: "Non fai parte di questa campagna" }
+    if (!canJoinCampaign(missionsEnabled, member.campaign.allowMissionCharacters)) return { error: MISSION_CAMPAIGN_ERROR }
   }
 
   const character = await prisma.character.create({
@@ -29,6 +32,7 @@ export async function createCharacter(input: NewCharacterInput): Promise<ActionR
       sheet: buildSheet(parsed.data, user.name),
       ownerId: user.id,
       campaignId: campaignId || null,
+      missionsEnabled,
     },
     select: { id: true },
   })
@@ -59,10 +63,21 @@ export async function setCharacterCampaign(
 ): Promise<ActionResult> {
   const user = await requireUser()
   if (campaignId) {
-    const member = await prisma.membership.findUnique({
-      where: { userId_campaignId: { userId: user.id, campaignId } },
-    })
+    const [member, character] = await Promise.all([
+      prisma.membership.findUnique({
+        where: { userId_campaignId: { userId: user.id, campaignId } },
+        select: { campaign: { select: { allowMissionCharacters: true } } },
+      }),
+      prisma.character.findFirst({ where: { id: characterId, ownerId: user.id }, select: { missionsEnabled: true } }),
+    ])
     if (!member) return { error: "Non fai parte di questa campagna" }
+    if (!character) return { error: "Non puoi modificare questo personaggio" }
+    if (!canJoinCampaign(character.missionsEnabled, member.campaign.allowMissionCharacters)) {
+      return { error: MISSION_CAMPAIGN_ERROR }
+    }
+    // Mentre è in missione è lontano: in campagna entra quando torna
+    const away = await prisma.missionRun.findFirst({ where: { characterId, status: "ACTIVE" }, select: { id: true } })
+    if (away) return { error: "È in missione: potrà entrare in campagna quando torna" }
   }
 
   const { count } = await prisma.character.updateMany({

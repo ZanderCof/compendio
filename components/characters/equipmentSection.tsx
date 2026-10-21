@@ -99,7 +99,7 @@ export function EquipmentSection() {
           Zaino vuoto. {editing ? "Aggiungi un oggetto qui sotto." : !readOnly && "Premi “Modifica” per aggiungere oggetti."}
         </p>
       )}
-      <ul className="grid gap-x-6 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
         {character.equipment.map((item, index) => (
           <li
             key={`${item.name}-${index}`}

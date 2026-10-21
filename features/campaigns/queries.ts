@@ -12,6 +12,7 @@ export async function listMyCampaigns(userId: string) {
           id: true,
           name: true,
           description: true,
+          allowMissionCharacters: true,
           // Per la pila di avatar nella card: il master per primo
           members: {
             select: { user: { select: { id: true, name: true, image: true } } },
@@ -41,6 +42,7 @@ export async function getCampaignForMember(campaignId: string, userId: string) {
       id: true,
       name: true,
       description: true,
+      allowMissionCharacters: true,
       inviteCode: true,
       members: {
         select: { role: true, user: { select: { id: true, name: true, image: true } } },

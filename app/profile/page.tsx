@@ -5,12 +5,16 @@ import { Crown, Plus, Swords } from "lucide-react"
 
 import { CharacterCard } from "@/components/characters/characterCard"
 import { SheetSection } from "@/components/characters/sheetSection"
+import { MissionsCard } from "@/components/profile/missionsCard"
 import { SignOutButton, ThemePicker } from "@/components/profile/profileActions"
+import { XpCard } from "@/components/profile/xpCard"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { listMyCampaigns } from "@/features/campaigns/queries"
 import { listMyCharacters } from "@/features/characters/queries"
+import { getMissionBoard } from "@/features/missions/queries"
+import { getProfileXp } from "@/features/profile/queries"
 import { initials } from "@/lib/initials"
 import { requireUser } from "@/lib/session"
 
@@ -30,7 +34,13 @@ export default function ProfilePage() {
 
 async function Profile() {
   const user = await requireUser()
-  const [characters, campaigns] = await Promise.all([listMyCharacters(user.id), listMyCampaigns(user.id)])
+  // Prima la bacheca: chiude le missioni finite, così EXP e schede sono già aggiornate
+  const board = await getMissionBoard(user.id)
+  const [characters, campaigns, xp] = await Promise.all([
+    listMyCharacters(user.id),
+    listMyCampaigns(user.id),
+    getProfileXp(user.id),
+  ])
   const asMaster = campaigns.filter((c) => c.role === "MASTER").length
 
   return (
@@ -59,7 +69,13 @@ async function Profile() {
         </dl>
       </section>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[3fr_2fr]">
+      {/* Esperienza del profilo e missioni dei personaggi */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[2fr_3fr]">
+        <XpCard progress={xp} />
+        <MissionsCard missions={board.missions} characters={board.characters} />
+      </div>
+
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[3fr_2fr]">
         <SheetSection
           title="I tuoi personaggi"
           action={
@@ -74,7 +90,7 @@ async function Profile() {
           {characters.length === 0 ? (
             <p className="text-sm text-muted-foreground">Ancora nessun personaggio.</p>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {characters.map((character) => (
                 <CharacterCard key={character.id} character={character} href={`/characters/${character.id}`} />
               ))}

@@ -3,7 +3,7 @@ import { Suspense } from "react"
 import { Activity, Radio, UserRoundPlus, UsersRound } from "lucide-react"
 
 import { AdminTabs, type AdminTab } from "@/components/admin/adminTabs"
-import { InvitesPanel, RequestsPanel, UsersPanel } from "@/components/admin/panels"
+import { InvitesPanel, MissionsPanel, RequestsPanel, UsersPanel } from "@/components/admin/panels"
 import { adminStats } from "@/features/admin/queries"
 import { isInviteOnly } from "@/features/invites/rules"
 import { requireAdmin } from "@/lib/admin"
@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Amministrazione · Compendio" }
 
 type SearchParams = PageProps<"/admin">["searchParams"]
 
-const TABS: AdminTab[] = ["utenti", "richieste", "inviti"]
+const TABS: AdminTab[] = ["utenti", "richieste", "inviti", "missioni"]
 
 export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
@@ -73,6 +73,7 @@ async function Admin({ searchParams }: { searchParams: SearchParams }) {
         {tab === "utenti" && <UsersPanel search={search} />}
         {tab === "richieste" && <RequestsPanel />}
         {tab === "inviti" && <InvitesPanel />}
+        {tab === "missioni" && <MissionsPanel />}
       </Suspense>
     </>
   )

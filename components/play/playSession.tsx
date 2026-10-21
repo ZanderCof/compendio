@@ -283,7 +283,7 @@ export function PlaySession({
             Mappe
           </Button>
         )}
-        <div className="grid items-start gap-6 lg:grid-cols-[3fr_2fr]">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[3fr_2fr]">
           {sheet}
           <div className="flex flex-col gap-6 lg:sticky lg:top-[calc(var(--nav-h)+1rem)]">
             {feed}

@@ -31,7 +31,7 @@ async function FormLoader({ searchParams }: { searchParams: SearchParams }) {
 
   return (
     <NewCharacterForm
-      campaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))}
+      campaigns={campaigns.map((c) => ({ id: c.id, name: c.name, allowMissionCharacters: c.allowMissionCharacters }))}
       defaultCampaignId={typeof campaign === "string" ? campaign : undefined}
     />
   )

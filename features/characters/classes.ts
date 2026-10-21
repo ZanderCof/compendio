@@ -29,6 +29,9 @@ export const CLASSES: ClassInfo[] = [
 
 export const findClass = (name: string) => CLASSES.find((c) => c.name === name)
 
+/** Razze proposte nel form di creazione (si può anche scriverne una diversa). */
+export const RACES = ["Umano", "Elfo", "Mezzelfo", "Nano", "Halfling", "Gnomo", "Mezzorco", "Dragonide", "Tiefling"]
+
 // Slot per livello di incantatore pieno: indice = livello dell'incantatore - 1,
 // valori = slot di 1°, 2°, ... 9° livello.
 const FULL_CASTER_SLOTS: number[][] = [

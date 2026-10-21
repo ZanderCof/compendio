@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react"
-import { Crown, Gauge, Heart, Shield, Sparkles } from "lucide-react"
+import { Crown, Gauge, Heart, ScrollText, Shield, Sparkles } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import type { CharacterSummary } from "@/features/characters/queries"
@@ -154,7 +154,7 @@ export function CharacterCard({
         </div>
       </div>
 
-      {(showOwner || character.campaign || character.pendingRequests > 0) && (
+      {(showOwner || character.campaign || character.pendingRequests > 0 || character.missionsEnabled) && (
         <div className="relative mt-auto flex flex-wrap gap-2 pt-3">
           {character.pendingRequests > 0 && (
             <Badge className="pointer-events-none">
@@ -162,6 +162,12 @@ export function CharacterCard({
               {character.pendingRequests === 1
                 ? "1 proposta del master"
                 : `${character.pendingRequests} proposte del master`}
+            </Badge>
+          )}
+          {character.missionsEnabled && (
+            <Badge variant="secondary" className="pointer-events-none" title="Può fare le missioni settimanali">
+              <ScrollText />
+              Missioni
             </Badge>
           )}
           {showOwner && (

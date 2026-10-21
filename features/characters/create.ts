@@ -19,6 +19,8 @@ export const newCharacterSchema = z.object({
   armorClass: z.coerce.number().int().min(0).max(40).optional(),
   speed: z.coerce.number().int().min(0).max(60).default(9),
   campaignId: z.string().optional(),
+  // Missioni settimanali fuori dal gioco: si sceglie solo qui, non si cambia più
+  missionsEnabled: z.boolean().default(false),
 })
 
 export type NewCharacterInput = z.input<typeof newCharacterSchema>

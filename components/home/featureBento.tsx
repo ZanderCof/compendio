@@ -166,7 +166,7 @@ export function FeatureBento() {
   }, [])
 
   return (
-    <div ref={ref} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div ref={ref} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {FEATURES.map((feature, i) => (
         <SpotlightCard key={feature.title} feature={feature} big={i === 0} />
       ))}

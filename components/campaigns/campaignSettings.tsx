@@ -1,7 +1,8 @@
 "use client"
 
-import { useActionState, useState } from "react"
-import { Check, LoaderCircle, Save, Settings, Trash2 } from "lucide-react"
+import { useActionState, useState, useTransition } from "react"
+import { Check, LoaderCircle, Save, ScrollText, Settings, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { ConfirmButton } from "@/components/shared/confirmButton"
 import { Button } from "@/components/ui/button"
@@ -14,19 +15,58 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { deleteCampaign, updateCampaign } from "@/features/campaigns/actions"
+import { deleteCampaign, setAllowMissionCharacters, updateCampaign } from "@/features/campaigns/actions"
 
 const labelClass = "text-xs tracking-widest text-muted-foreground"
 
-/** Pannello del master: nome, descrizione ed eliminazione della campagna. */
+/** Regola del master: la campagna ammette i personaggi con le missioni settimanali? */
+function MissionRule({ campaignId, allow }: { campaignId: string; allow: boolean }) {
+  const [pending, startTransition] = useTransition()
+
+  return (
+    <div className="mx-4 mt-8 flex flex-col gap-2 rounded-xl border p-4">
+      <h3 className="flex items-center gap-2 tracking-wide">
+        <ScrollText className="size-4 text-violet" />
+        Missioni settimanali
+      </h3>
+      <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+        <input
+          type="checkbox"
+          checked={allow}
+          disabled={pending}
+          onChange={(e) => {
+            const next = e.target.checked
+            startTransition(async () => {
+              const result = await setAllowMissionCharacters(campaignId, next)
+              if (result?.error) toast.error(result.error)
+              else toast.success(next ? "Ora la campagna ammette i personaggi con le missioni" : "Solo personaggi senza missioni")
+            })
+          }}
+          className="mt-0.5 size-4 accent-primary"
+        />
+        <span>
+          Ammetti personaggi con le missioni settimanali
+          <span className="block text-xs text-muted-foreground">
+            Se la togli, nella campagna entrano solo personaggi senza bonus guadagnati fuori dal gioco.
+          </span>
+        </span>
+        {pending && <LoaderCircle className="size-4 shrink-0 animate-spin" />}
+      </label>
+    </div>
+  )
+}
+
+/** Pannello del master: nome, descrizione, regola delle missioni ed eliminazione della campagna. */
 export function CampaignSettings({
   campaignId,
   name,
   description,
+  allowMissionCharacters,
 }: {
   campaignId: string
   name: string
   description: string | null
+  allowMissionCharacters: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(updateCampaign.bind(null, campaignId), undefined)
@@ -78,6 +118,8 @@ export function CampaignSettings({
             </Button>
           </div>
         </form>
+
+        <MissionRule campaignId={campaignId} allow={allowMissionCharacters} />
 
         <div className="mx-4 mt-8 flex flex-col gap-3 rounded-xl border border-destructive/40 bg-destructive/5 p-4">
           <h3 className="tracking-wide text-destructive">Elimina la campagna</h3>

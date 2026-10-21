@@ -2,6 +2,8 @@ import Form from "next/form"
 import { Search } from "lucide-react"
 
 import { DeleteUserButton } from "@/components/admin/deleteUserButton"
+import { CreateMissionForm, MissionAdminActions } from "@/components/admin/missionAdmin"
+import { TierBadge } from "@/components/missions/tierBadge"
 import { RequestActions } from "@/components/admin/requestActions"
 import { CopyInviteLink, CreateInviteForm, RevokeInviteButton } from "@/components/invites/adminInvites"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -9,6 +11,9 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { listAccessRequests, listUsers } from "@/features/admin/queries"
 import { listInviteCodes } from "@/features/invites/queries"
+import { listMissionsForAdmin } from "@/features/missions/queries"
+import { abilityLabel } from "@/features/characters/rules"
+import type { Ability } from "@/features/characters/types"
 import { checkInvite } from "@/features/invites/rules"
 import { isAdminEmail } from "@/lib/admin"
 import { initials } from "@/lib/initials"
@@ -240,6 +245,80 @@ export async function InvitesPanel() {
                   ))}
                 </ul>
               )}
+            </article>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function missionState(m: { startsAt: Date; endsAt: Date; closedAt: Date | null }, now: Date) {
+  if (m.closedAt) return { label: "Chiusa", variant: "destructive" } as const
+  if (now < m.startsAt) return { label: "Programmata", variant: "outline" } as const
+  if (now >= m.endsAt) return { label: "Conclusa", variant: "secondary" } as const
+  return { label: "Aperta", variant: "default" } as const
+}
+
+export async function MissionsPanel() {
+  const missions = await listMissionsForAdmin()
+  const now = new Date()
+  const endFormat = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", timeZone: "Europe/Rome" })
+
+  return (
+    <section className="flex flex-col gap-6">
+      <div className="rounded-2xl border bg-card p-5">
+        <h2 className="text-2xl tracking-wide">Nuova missione</h2>
+        <p className="mb-3 text-sm text-muted-foreground">
+          Valida nelle date scelte. Al ritorno il server tira d20 + modificatore contro la CD: se riesce tutta
+          l&apos;EXP e le ricompense, altrimenti metà EXP.
+        </p>
+        <CreateMissionForm />
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h2 className="text-2xl tracking-wide">Missioni ({missions.length})</h2>
+        {missions.length === 0 && <p className="text-muted-foreground">Nessuna missione ancora.</p>}
+        {missions.map((mission) => {
+          const state = missionState(mission, now)
+          // endsAt è la mezzanotte dopo l'ultimo giorno: per mostrarlo si toglie un istante
+          const lastDay = new Date(mission.endsAt.getTime() - 1)
+          return (
+            <article key={mission.id} className="flex flex-col gap-2 rounded-2xl border bg-card p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <TierBadge tier={mission.tier} />
+                    <h3 className="text-xl tracking-wide">{mission.title}</h3>
+                    <Badge variant={state.variant}>{state.label}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {endFormat.format(mission.startsAt)} – {endFormat.format(lastDay)} · {mission.durationHours} h ·{" "}
+                    {abilityLabel(mission.ability as Ability)} CD {mission.dc} · +{mission.xpReward} EXP
+                    {mission.rewardItem && ` · ${mission.rewardItem}`}
+                    {mission.rewardGold > 0 && ` · ${mission.rewardGold} mo`}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {[
+                      mission.minLevel > 1 && `Livello ${mission.minLevel}+`,
+                      mission.allowedClasses.length > 0 && mission.allowedClasses.join(", "),
+                      mission.allowedRaces.length > 0 && mission.allowedRaces.join(", "),
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "Aperta a tutti"}
+                  </p>
+                </div>
+                <MissionAdminActions
+                  id={mission.id}
+                  title={mission.title}
+                  closed={!!mission.closedAt}
+                  runs={mission.runsTotal}
+                />
+              </div>
+              <p className="text-sm">
+                Partiti {mission.runsTotal}
+                {mission.runsActive > 0 && ` (${mission.runsActive} in viaggio)`} · riuscite {mission.runsSucceeded}
+              </p>
             </article>
           )
         })}

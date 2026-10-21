@@ -24,6 +24,8 @@ model User {
   inviteCode    InviteCode? @relation("InviteRedemptions", fields: [inviteCodeId], references: [id], onDelete: SetNull)
   // Come è entrato durante la beta: beta, join, email, request (null = prima della beta o registrazione libera)
   joinedVia     String?
+  // Esperienza del profilo (non del personaggio): il livello si calcola da qui, vedi features/profile/xp.ts
+  xp            Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -40,6 +42,8 @@ model User {
   datePolls       DatePoll[]
   dateVotes       DateVote[]
   inviteCodes     InviteCode[] @relation("InviteCreator")
+  missionsCreated Mission[]
+  missionRuns     MissionRun[]
   accessDecisions AccessRequest[]
 
   @@map("user")
@@ -150,6 +154,8 @@ model Campaign {
   description String?
   // Codice da condividere con gli amici per entrare nella campagna
   inviteCode  String   @unique @default(cuid())
+  // Il master può chiudere la campagna ai personaggi che fanno le missioni settimanali (bonus fuori gioco)
+  allowMissionCharacters Boolean @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -425,8 +431,11 @@ model Character {
   // Un personaggio può esistere anche fuori da una campagna
   campaignId String?
   campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  // Può andare nelle missioni settimanali quando non è in campagna. Si sceglie solo alla creazione
+  missionsEnabled Boolean @default(false)
 
   editRequests EditRequest[]
+  missionRuns  MissionRun[]
   rolls        Roll[]
   mapTokens    MapToken[]
 
@@ -489,4 +498,81 @@ model Roll {
   @@index([characterId, createdAt])
   @@index([sessionId, createdAt])
   @@map("roll")
+}
+
+// ─── Missioni settimanali (fuori dal gioco) ──────────────────────
+
+// Creata da un admin: valida in una finestra di date, con requisiti e ricompense
+model Mission {
+  id             String    @id @default(cuid())
+  // Livello della missione: dà i valori predefiniti (EXP, CD, durata, livello minimo), che l'admin può cambiare
+  tier           MissionTier @default(BRONZE)
+  title          String
+  description    String
+  // EXP al profilo del giocatore (metà se la prova fallisce)
+  xpReward       Int
+  // Ricompense per il personaggio, solo se la prova riesce
+  rewardItem     String?
+  rewardGold     Int       @default(0)
+  // Requisiti: livello minimo; classi e razze ammesse (vuoto = tutte)
+  minLevel       Int       @default(1)
+  allowedClasses String[]
+  allowedRaces   String[]
+  // Settimana di validità
+  startsAt       DateTime
+  endsAt         DateTime
+  // Quanto resta via il personaggio
+  durationHours  Int
+  // Prova al ritorno: d20 + modificatore della caratteristica contro la CD
+  ability        String
+  dc             Int
+  createdById    String?
+  createdBy      User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt      DateTime  @default(now())
+  // Chiusa in anticipo dall'admin: non si può più partire
+  closedAt       DateTime?
+
+  runs MissionRun[]
+
+  @@index([startsAt, endsAt])
+}
+
+enum MissionTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+enum MissionRunStatus {
+  ACTIVE
+  COMPLETED
+}
+
+// Un personaggio in missione. Al ritorno il server tira la prova e assegna le ricompense
+model MissionRun {
+  id          String           @id @default(cuid())
+  missionId   String
+  mission     Mission          @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  characterId String
+  character   Character        @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Settimana della partenza (es. "2026-W43"): una missione a settimana per personaggio
+  weekKey     String
+  status      MissionRunStatus @default(ACTIVE)
+  startedAt   DateTime         @default(now())
+  returnsAt   DateTime
+  completedAt DateTime?
+  natural     Int?
+  total       Int?
+  success     Boolean?
+  xpAwarded   Int?
+  // Quando il giocatore ha visto il banner del risultato
+  seenAt      DateTime?
+
+  @@unique([characterId, weekKey])
+  @@unique([characterId, missionId])
+  @@index([userId, status])
 }

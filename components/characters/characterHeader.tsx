@@ -39,7 +39,8 @@ export function CharacterHeader() {
 
   return (
     <header className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
+      {/* Su telefono l'anello dei PF va a capo sotto il nome: insieme non ci stanno */}
+      <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
         {/* Avatar: per ora le iniziali, poi un'immagine */}
         <div
           className={cn(
@@ -50,7 +51,7 @@ export function CharacterHeader() {
           {initialsText}
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-40">
           <h1 className="truncate text-2xl leading-tight tracking-wide">{character.name}</h1>
           <p className="flex items-center gap-1 truncate text-sm text-muted-foreground">
             {character.race} · {character.className}{" "}

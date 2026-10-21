@@ -75,6 +75,7 @@ async function CampaignLoader({ params }: { params: Params }) {
               campaignId={campaign.id}
               name={campaign.name}
               description={campaign.description}
+              allowMissionCharacters={campaign.allowMissionCharacters}
             />
           </div>
         ) : (
@@ -85,7 +86,7 @@ async function CampaignLoader({ params }: { params: Params }) {
       </div>
 
       {/* Riquadri piccoli affiancati: sessione, data della prossima, diario */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <SessionPanel campaignId={campaign.id} isMaster={isMaster} initial={session} />
         <NextDateCard
           campaignId={campaign.id}
@@ -97,7 +98,7 @@ async function CampaignLoader({ params }: { params: Params }) {
         <JournalCard campaignId={campaign.id} isMaster={isMaster} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
         <SheetSection
           title="Il gruppo"
           action={

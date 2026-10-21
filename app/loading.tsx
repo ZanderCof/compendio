@@ -10,12 +10,12 @@ export default function Loading() {
         <div className="h-10 w-64 max-w-full animate-pulse rounded-lg bg-muted" />
         <div className="h-4 w-80 max-w-full animate-pulse rounded bg-muted/70" />
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="h-24 animate-pulse rounded-xl bg-muted" style={{ animationDelay: `${i * 120}ms` }} />
         ))}
       </div>
-      <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
         <div className="h-80 animate-pulse rounded-xl bg-muted" />
         <div className="h-80 animate-pulse rounded-xl bg-muted" style={{ animationDelay: "200ms" }} />
       </div>

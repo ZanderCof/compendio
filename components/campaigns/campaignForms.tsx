@@ -73,6 +73,15 @@ function CreateCampaignForm({ onCreated }: { onCreated: () => void }) {
           {description.length}/{DESCRIPTION_MAX}
         </span>
       </label>
+      <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 text-sm">
+        <input type="checkbox" name="allowMissionCharacters" defaultChecked className="mt-0.5 size-4 accent-primary" />
+        <span>
+          Ammetti personaggi con le missioni settimanali
+          <span className="block text-xs text-muted-foreground">
+            Toglila se vuoi solo personaggi &quot;puliti&quot;, senza bonus guadagnati fuori dal gioco. Puoi cambiarla dopo.
+          </span>
+        </span>
+      </label>
       <FormError message={state?.error} />
       <Button type="submit" size="lg" disabled={pending || !name.trim() || tooLong}>
         {pending ? <LoaderCircle className="animate-spin" /> : <Plus />}

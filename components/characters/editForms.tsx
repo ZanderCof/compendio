@@ -26,7 +26,7 @@ export function AddAttackForm() {
 
   return (
     <form
-      className="mt-3 grid gap-2 rounded-lg border border-dashed p-3 sm:grid-cols-[2fr_auto_1fr_1fr_auto]"
+      className="mt-3 grid grid-cols-1 gap-2 rounded-lg border border-dashed p-3 sm:grid-cols-[2fr_auto_1fr_1fr_auto]"
       onSubmit={(e) => {
         e.preventDefault()
         try {
@@ -111,7 +111,7 @@ export function AddFeatureForm() {
 
   return (
     <form
-      className="mt-4 grid gap-2 rounded-lg border border-dashed p-3"
+      className="mt-4 grid grid-cols-1 gap-2 rounded-lg border border-dashed p-3"
       onSubmit={(e) => {
         e.preventDefault()
         dispatch({ type: "addFeature", feature: { name, source: source.trim(), description: description.trim() } })

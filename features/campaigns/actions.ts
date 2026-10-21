@@ -29,6 +29,8 @@ export async function createCampaign(_prev: CreateCampaignState, formData: FormD
   const campaign = await prisma.campaign.create({
     data: {
       ...parsed.data,
+      // Checkbox: presente ("on") se il master ammette i personaggi con le missioni settimanali
+      allowMissionCharacters: formData.get("allowMissionCharacters") === "on",
       members: { create: { userId: user.id, role: "MASTER" } },
     },
     select: { id: true },
@@ -173,4 +175,28 @@ export async function deleteCampaign(campaignId: string): Promise<FormState> {
     prisma.campaign.delete({ where: { id: campaignId } }),
   ])
   redirect("/campaigns")
+}
+
+/**
+ * Il master apre o chiude la campagna ai personaggi con le missioni settimanali. Non si chiude
+ * se dentro ce n'è già qualcuno: prima vanno tolti, non si espelle nessuno di nascosto.
+ */
+export async function setAllowMissionCharacters(campaignId: string, allow: boolean): Promise<FormState> {
+  const user = await requireUser()
+  const isMaster = await prisma.membership.findFirst({ where: { campaignId, userId: user.id, role: "MASTER" } })
+  if (!isMaster) return { error: "Solo il master può cambiare questa regola" }
+
+  if (!allow) {
+    const inside = await prisma.character.count({ where: { campaignId, missionsEnabled: true } })
+    if (inside > 0) {
+      return {
+        error:
+          inside === 1
+            ? "C'è già un personaggio con le missioni in questa campagna: va tolto prima di chiudere"
+            : `Ci sono già ${inside} personaggi con le missioni in questa campagna: vanno tolti prima di chiudere`,
+      }
+    }
+  }
+  await prisma.campaign.update({ where: { id: campaignId }, data: { allowMissionCharacters: allow } })
+  refresh()
 }

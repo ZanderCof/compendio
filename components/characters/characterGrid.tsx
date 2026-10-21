@@ -130,7 +130,7 @@ export function CharacterGrid({ characters }: { characters: CharacterSummary[] }
         </div>
       )}
 
-      <motion.ul layout={!reduced} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.ul layout={!reduced} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence initial={false} mode="popLayout">
           {visible.map((character, i) => (
             <motion.li

@@ -8,7 +8,7 @@ const externalLink = "link-underline text-foreground/80 hover:text-primary"
 export function Footer() {
   return (
     <footer className="mt-auto border-t bg-muted/40">
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:grid-cols-[2fr_1fr] lg:grid-cols-[2fr_1fr_2fr]">
+      <div className="mx-auto grid grid-cols-1 w-full max-w-6xl gap-10 px-4 py-12 sm:grid-cols-[2fr_1fr] lg:grid-cols-[2fr_1fr_2fr]">
         <div className="flex flex-col gap-3">
           <p className="font-display flex items-center gap-2 text-xl tracking-wide">
             <span className="flex size-8 items-center justify-center rounded-lg bg-linear-to-br from-plum to-violet text-primary-foreground">

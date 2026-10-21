@@ -23,6 +23,8 @@ export type CharacterSummary = {
   campaign: { id: string; name: string } | null
   /** Proposte del master in attesa di risposta */
   pendingRequests: number
+  /** Può fare le missioni settimanali (scelto alla creazione) */
+  missionsEnabled: boolean
 }
 
 function parseSheet(id: string, sheet: unknown): CharacterSheet {
@@ -36,6 +38,7 @@ function toSummary(row: {
   sheet: unknown
   owner: { name: string }
   campaign: { id: string; name: string } | null
+  missionsEnabled: boolean
   _count: { editRequests: number }
 }): CharacterSummary {
   const sheet = parseSheet(row.id, row.sheet)
@@ -51,6 +54,7 @@ function toSummary(row: {
     ownerName: row.owner.name,
     campaign: row.campaign,
     pendingRequests: row._count.editRequests,
+    missionsEnabled: row.missionsEnabled,
   }
 }
 
@@ -59,6 +63,7 @@ const summarySelect = {
   sheet: true,
   owner: { select: { name: true } },
   campaign: { select: { id: true, name: true } },
+  missionsEnabled: true,
   _count: { select: { editRequests: { where: { status: "PENDING" } } } },
 } as const
 

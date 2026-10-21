@@ -2,22 +2,23 @@
 
 import Link from "next/link"
 import { motion } from "motion/react"
-import { Ticket, UserRoundPlus, UsersRound } from "lucide-react"
+import { ScrollText, Ticket, UserRoundPlus, UsersRound } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-export type AdminTab = "utenti" | "richieste" | "inviti"
+export type AdminTab = "utenti" | "richieste" | "inviti" | "missioni"
 
 const TABS = [
   { id: "utenti", label: "Utenti", icon: UsersRound },
   { id: "richieste", label: "Richieste", icon: UserRoundPlus },
   { id: "inviti", label: "Inviti", icon: Ticket },
+  { id: "missioni", label: "Missioni", icon: ScrollText },
 ] as const
 
 /** Schede della pagina admin: link con ?scheda=, così restano nell'URL e funzionano senza JS. */
 export function AdminTabs({ active, pending }: { active: AdminTab; pending: number }) {
   return (
-    <nav aria-label="Sezioni amministrazione" className="flex gap-1 rounded-xl border bg-card p-1 shadow-sm">
+    <nav aria-label="Sezioni amministrazione" className="scrollbar-none flex gap-1 overflow-x-auto rounded-xl border bg-card p-1 shadow-sm">
       {TABS.map((tab) => {
         const isActive = tab.id === active
         const Icon = tab.icon
@@ -28,7 +29,7 @@ export function AdminTabs({ active, pending }: { active: AdminTab; pending: numb
             scroll={false}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "font-display relative flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-lg tracking-wide transition-colors sm:flex-none",
+              "font-display relative flex flex-1 shrink-0 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-base tracking-wide whitespace-nowrap transition-colors sm:flex-none sm:gap-2 sm:px-3 sm:text-lg",
               isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
             )}
           >

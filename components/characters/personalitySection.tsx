@@ -20,7 +20,7 @@ export function PersonalitySection() {
 
   return (
     <SheetSection title="Personalità e Storia">
-      <dl className="grid gap-3 sm:grid-cols-2">
+      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {entries.map((entry) => (
           <div key={entry.field} className="rounded-lg bg-accent/60 p-3">
             <dt className="text-xs tracking-widest text-accent-foreground">{entry.label}</dt>

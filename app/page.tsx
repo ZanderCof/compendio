@@ -16,7 +16,7 @@ export default function HomePage() {
         {/* Hero: testo a sinistra, d20 a destra (sotto su telefono) */}
         <section className="relative isolate overflow-hidden">
           <HeroBackground />
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-10 px-4 py-16 md:py-24 lg:grid-cols-[1.2fr_1fr]">
+          <div className="mx-auto grid grid-cols-1 w-full max-w-6xl items-center gap-10 px-4 py-16 md:py-24 lg:grid-cols-[1.2fr_1fr]">
             <div className="flex flex-col items-start gap-6">
               <span className="flex items-center gap-1.5 rounded-full border bg-card/70 px-3 py-1 text-xs tracking-widest text-violet backdrop-blur">
                 <Sparkles className="size-3.5" />

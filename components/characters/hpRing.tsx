@@ -118,7 +118,7 @@ export function HpRing() {
   )
 
   return (
-    <div className="flex shrink-0 flex-col items-center gap-1">
+    <div className="flex w-full shrink-0 flex-col items-center gap-1 sm:w-auto">
       <div className="flex items-center gap-1.5">
         {!readOnly && (
           <button

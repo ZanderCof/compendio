@@ -34,7 +34,7 @@ export default function CampaignsPage() {
 
 function CardsSkeleton() {
   return (
-    <div className="grid animate-pulse gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-1 animate-pulse gap-4 lg:grid-cols-2">
       {Array.from({ length: 2 }, (_, i) => (
         <div key={i} className="h-36 rounded-2xl bg-muted" />
       ))}

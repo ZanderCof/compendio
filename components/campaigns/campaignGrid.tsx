@@ -144,7 +144,7 @@ function CampaignCard({ campaign }: { campaign: CampaignListItem }) {
 export function CampaignGrid({ campaigns }: { campaigns: CampaignListItem[] }) {
   const reduced = useReducedMotion()
   return (
-    <motion.ul layout={!reduced} className="grid gap-4 lg:grid-cols-2">
+    <motion.ul layout={!reduced} className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <AnimatePresence initial={false}>
         {campaigns.map((campaign) => (
           <motion.li

@@ -1,19 +1,18 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Dices, LoaderCircle } from "lucide-react"
+import { Dices, LoaderCircle, ScrollText } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { createCharacter } from "@/features/characters/actions"
-import { CLASSES, findClass, maxHitPoints } from "@/features/characters/classes"
+import { CLASSES, RACES, findClass, maxHitPoints } from "@/features/characters/classes"
 import { ABILITIES, SKILLS, abilityModifier, signed } from "@/features/characters/rules"
 import type { Ability, Skill } from "@/features/characters/types"
 import { parse, roll } from "@/features/dice/dice"
 import { SheetSection } from "./sheetSection"
 
-const RACES = ["Umano", "Elfo", "Mezzelfo", "Nano", "Halfling", "Gnomo", "Mezzorco", "Dragonide", "Tiefling"]
 const ALIGNMENTS = [
   "Legale Buono", "Neutrale Buono", "Caotico Buono",
   "Legale Neutrale", "Neutrale", "Caotico Neutrale",
@@ -35,7 +34,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
   )
 }
 
-type CampaignOption = { id: string; name: string }
+type CampaignOption = { id: string; name: string; allowMissionCharacters: boolean }
 
 export function NewCharacterForm({
   campaigns,
@@ -64,6 +63,9 @@ export function NewCharacterForm({
   const [campaignId, setCampaignId] = useState(
     campaigns.some((c) => c.id === defaultCampaignId) ? defaultCampaignId! : ""
   )
+  const [missionsEnabled, setMissionsEnabled] = useState(false)
+  // Il master della campagna scelta può non ammettere i personaggi con le missioni
+  const missionsBlocked = campaigns.find((c) => c.id === campaignId)?.allowMissionCharacters === false
 
   const className = classChoice === CUSTOM_CLASS ? customClass : classChoice
   const classInfo = findClass(className)
@@ -110,6 +112,7 @@ export function NewCharacterForm({
         armorClass: armorClass === "" ? undefined : Number(armorClass),
         speed,
         campaignId: campaignId || undefined,
+        missionsEnabled: missionsEnabled && !missionsBlocked,
       })
       // Se va tutto bene l'azione apre la scheda: si arriva qui solo in caso di errore
       if (result?.error) setError(result.error)
@@ -119,7 +122,7 @@ export function NewCharacterForm({
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
       <SheetSection title="Chi è">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Nome">
             <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} autoFocus />
           </Field>
@@ -177,12 +180,45 @@ export function NewCharacterForm({
                 {campaigns.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
+                    {c.allowMissionCharacters ? "" : " (senza missioni)"}
                   </option>
                 ))}
               </select>
             </Field>
           )}
         </div>
+
+        {/* Si sceglie solo qui: dopo la creazione non si cambia più */}
+        <label
+          className={cn(
+            "mt-4 flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors",
+            missionsEnabled && !missionsBlocked && "border-primary/50 bg-primary/5",
+            missionsBlocked && "cursor-not-allowed opacity-60"
+          )}
+        >
+          <input
+            type="checkbox"
+            checked={missionsEnabled && !missionsBlocked}
+            disabled={missionsBlocked}
+            onChange={(e) => setMissionsEnabled(e.target.checked)}
+            className="mt-1 size-4 accent-primary"
+          />
+          <span className="flex flex-col gap-0.5">
+            <span className="flex items-center gap-1.5">
+              <ScrollText className="size-4 text-violet" />
+              Può partecipare alle missioni settimanali
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Quando non è in una campagna puoi mandarlo in piccole missioni fuori dal gioco che danno bonus. Alcuni
+              master accettano solo personaggi senza missioni. <strong>Non si può cambiare dopo la creazione.</strong>
+            </span>
+            {missionsBlocked && (
+              <span className="text-xs text-destructive">
+                La campagna scelta ammette solo personaggi senza missioni.
+              </span>
+            )}
+          </span>
+        </label>
       </SheetSection>
 
       <SheetSection
@@ -242,7 +278,7 @@ export function NewCharacterForm({
       </SheetSection>
 
       <SheetSection title="Difesa e movimento">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Classe Armatura" hint="Vuoto = senza armatura (10 + Destrezza)">
             <Input
               type="number"

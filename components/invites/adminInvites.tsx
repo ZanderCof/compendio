@@ -72,7 +72,7 @@ export function CreateInviteForm() {
   }, [state])
 
   return (
-    <form action={action} className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
+    <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
       <label className="flex flex-col gap-1 text-sm">
         Etichetta
         <Input name="label" placeholder="Es. Davide, Gruppo del giovedì" required maxLength={80} />

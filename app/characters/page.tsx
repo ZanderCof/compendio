@@ -36,7 +36,7 @@ export default function CharactersPage() {
 
 function CardsSkeleton() {
   return (
-    <div className="grid animate-pulse gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 animate-pulse gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 3 }, (_, i) => (
         <div key={i} className="h-40 rounded-2xl bg-muted" />
       ))}

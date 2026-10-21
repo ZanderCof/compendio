@@ -37,7 +37,7 @@ export function AbilitiesSection() {
       </SheetSection>
 
       <SheetSection title="Tiri Salvezza">
-        <ul className="grid gap-x-6 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
           {ABILITIES.map((ability) => {
             const proficient = character.savingThrows.includes(ability.key)
             const bonus = savingThrowBonus(character, ability.key)
