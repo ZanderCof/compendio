@@ -4,6 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Leggibilità: Nodesto è stretto e tutto maiuscolo, quindi i testi piccoli si alzano più degli altri */
+@theme {
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.45;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -135,8 +143,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    line-height: 1.5;
   }
   html {
     @apply font-sans;
+    /* Base 18px invece di 16: tutto il sito (testi e spazi in rem) cresce in proporzione */
+    font-size: 112.5%;
   }
 }

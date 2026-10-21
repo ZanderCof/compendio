@@ -178,6 +178,7 @@ model GameSession {
   campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   startedById String
   startedBy   User     @relation(fields: [startedById], references: [id], onDelete: Cascade)
+  rolls       Roll[]
 
   @@index([campaignId, status])
   @@map("game_session")
@@ -343,16 +344,22 @@ model Roll {
   kept      Int[]
   modifier  Int
   total     Int
+  // Tiro nascosto del master: lo vede solo lui
+  hidden    Boolean  @default(false)
   createdAt DateTime @default(now())
 
   userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Sessione in cui è stato fatto: il feed mostra i tiri della sessione in corso
+  sessionId   String?
+  session     GameSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   characterId String?
-  character   Character? @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  character   Character?   @relation(fields: [characterId], references: [id], onDelete: SetNull)
   campaignId  String?
-  campaign    Campaign?  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaign    Campaign?    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([campaignId, createdAt])
   @@index([characterId, createdAt])
+  @@index([sessionId, createdAt])
   @@map("roll")
 }

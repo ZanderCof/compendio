@@ -4,12 +4,15 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 import { ArrowLeft, Hourglass, Plus } from "lucide-react"
 
-import { DiceTest } from "@/components/play/diceTest"
+import { SheetSection } from "@/components/characters/sheetSection"
 import { EndSessionButton } from "@/components/play/endSessionButton"
+import { MasterDice } from "@/components/play/masterPanel"
+import { SessionFeed } from "@/components/play/sessionFeed"
 import { PlayerPanel } from "@/components/play/playerPanel"
 import { Button } from "@/components/ui/button"
 import { getCampaignForMember } from "@/features/campaigns/queries"
 import { getMyCharacterInCampaign } from "@/features/characters/queries"
+import { listSessionFeed } from "@/features/rolls/queries"
 import { getSessionState } from "@/features/sessions/queries"
 import { requireUser } from "@/lib/session"
 
@@ -19,7 +22,7 @@ type Params = PageProps<"/campaigns/[id]/play">["params"]
 
 export default function PlayPage({ params }: PageProps<"/campaigns/[id]/play">) {
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-4 md:py-8">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:py-8">
       <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-muted" />}>
         <PlayLoader params={params} />
       </Suspense>
@@ -35,6 +38,7 @@ async function PlayLoader({ params }: { params: Params }) {
   if (!campaign) notFound()
 
   const session = await getSessionState(campaign.id, user.id)
+  const feed = session.active ? await listSessionFeed(session.active.id, user.id) : []
   const isMaster = campaign.role === "MASTER"
   const back = (
     <Button variant="ghost" size="sm" asChild className="self-start">
@@ -76,14 +80,22 @@ async function PlayLoader({ params }: { params: Params }) {
         {isMaster && <EndSessionButton campaignId={campaign.id} />}
       </div>
 
-      {isMaster ? (
-        // La parte del master (feed dei tiri, iniziativa) arriva nei prossimi passi
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-xl border bg-card p-10">
-          <DiceTest />
+      <div className="grid items-start gap-6 lg:grid-cols-[3fr_2fr]">
+        {isMaster ? (
+          // Strumenti del master: per ora i dadi; iniziativa e mappa arriveranno qui
+          <SheetSection title="Dadi del master">
+            <MasterDice campaignId={campaign.id} />
+          </SheetSection>
+        ) : (
+          <PlayerSide campaignId={campaign.id} userId={user.id} />
+        )}
+
+        <div className="lg:sticky lg:top-20">
+          <SheetSection title="Tiri della sessione">
+            <SessionFeed campaignId={campaign.id} viewerId={user.id} initial={feed} />
+          </SheetSection>
         </div>
-      ) : (
-        <PlayerSide campaignId={campaign.id} userId={user.id} />
-      )}
+      </div>
     </>
   )
 }
@@ -103,5 +115,5 @@ async function PlayerSide({ campaignId, userId }: { campaignId: string; userId: 
       </div>
     )
   }
-  return <PlayerPanel character={mine.character} requests={mine.requests} />
+  return <PlayerPanel campaignId={campaignId} character={mine.character} requests={mine.requests} />
 }

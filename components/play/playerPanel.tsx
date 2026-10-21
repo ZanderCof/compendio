@@ -19,10 +19,19 @@ import type { EditRequestView } from "@/features/editRequests/queries"
  * Il personaggio del giocatore in partita, in versione compatta:
  * PF, salute e riposi, capacità e slot. Salva sul database come la scheda completa.
  */
-export function PlayerPanel({ character, requests }: { character: Character; requests: EditRequestView[] }) {
+export function PlayerPanel({
+  campaignId,
+  character,
+  requests,
+}: {
+  campaignId: string
+  character: Character
+  requests: EditRequestView[]
+}) {
   return (
     <CharacterProvider initial={character} access="owner" initialRequests={requests}>
-      <DiceProvider>
+      {/* I tiri passano dal server e finiscono nel feed della sessione */}
+      <DiceProvider campaignId={campaignId} characterId={character.id}>
         <div className="flex flex-col gap-4">
           <CharacterHeader />
           <EditRequestsPanel />

@@ -202,7 +202,7 @@ export function NewCharacterForm({
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
           {ABILITIES.map((ability) => (
             <label key={ability.key} className="flex flex-col items-center gap-1 rounded-xl border bg-secondary/40 p-2">
-              <span className="text-[0.7rem] tracking-widest">{ability.label}</span>
+              <span className="text-xs tracking-widest">{ability.label}</span>
               <input
                 type="number"
                 min={1}

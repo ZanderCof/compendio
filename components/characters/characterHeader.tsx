@@ -14,7 +14,7 @@ function QuickStat({ label, children }: { label: string; children: React.ReactNo
   return (
     <div className="flex flex-col items-center">
       <span className="flex h-8 items-center text-2xl leading-none">{children}</span>
-      <span className="mt-1 text-center text-[0.65rem] tracking-widest text-muted-foreground">
+      <span className="mt-1 text-center text-xs tracking-widest text-muted-foreground">
         {label}
       </span>
     </div>
@@ -79,9 +79,9 @@ export function CharacterHeader() {
             <span className="text-xl leading-tight tabular-nums">
               {hitPoints.current}/{hitPoints.max}
             </span>
-            <span className="text-[0.65rem] tracking-widest opacity-90">Punti Ferita</span>
+            <span className="text-xs tracking-widest opacity-90">Punti Ferita</span>
             {hitPoints.temp > 0 && (
-              <span className="text-[0.65rem] opacity-80">+{hitPoints.temp} temp</span>
+              <span className="text-xs opacity-80">+{hitPoints.temp} temp</span>
             )}
           </button>
         </HpEditor>

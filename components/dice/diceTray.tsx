@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Dices, Trash2 } from "lucide-react"
+import { Dices, EyeOff, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import {
   Sheet,
@@ -23,7 +24,7 @@ const timeFormat = new Intl.DateTimeFormat("it-IT", { hour: "2-digit", minute: "
 
 /** Pulsante fisso in basso a destra: apre il lanciadadi libero e la cronologia dei tiri. */
 export function DiceTray() {
-  const { rollD20, rollNotation, history, clearHistory } = useDice()
+  const { rollD20, rollNotation, history, clearHistory, canHide, hidden, setHidden, shared } = useDice()
   const [notation, setNotation] = useState("")
 
   return (
@@ -32,11 +33,14 @@ export function DiceTray() {
         <Button
           size="icon-lg"
           aria-label="Apri i dadi"
-          className="fixed right-4 bottom-4 z-30 size-14 rounded-full bg-linear-to-br from-plum to-violet shadow-lg ring-4 ring-background"
+          className={cn(
+            "fixed right-4 bottom-4 z-30 size-14 rounded-full bg-linear-to-br from-plum to-violet shadow-lg ring-4 ring-background",
+            hidden && "from-muted-foreground to-foreground/70"
+          )}
         >
           <Dices className="size-7" />
           {history.length > 0 && (
-            <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-aqua text-[0.65rem] text-foreground">
+            <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-aqua text-xs text-foreground">
               {Math.min(history.length, 99)}
             </span>
           )}
@@ -46,11 +50,26 @@ export function DiceTray() {
       <SheetContent className="w-full gap-0 sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="text-xl tracking-wide">Dadi</SheetTitle>
-          <SheetDescription>Tiri liberi e cronologia della sessione.</SheetDescription>
+          <SheetDescription>
+            {shared ? "Durante la sessione i tiri li vede tutto il tavolo." : "Tiri liberi e cronologia."}
+          </SheetDescription>
         </SheetHeader>
 
         <div className="flex flex-col gap-4 border-b px-4 pb-4">
           <AdvantageToggle className="self-center" />
+
+          {canHide && (
+            <label className="flex cursor-pointer items-center justify-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={hidden}
+                onChange={(e) => setHidden(e.target.checked)}
+                className="accent-primary"
+              />
+              <EyeOff className="size-4" />
+              Tiro nascosto (lo vedi solo tu)
+            </label>
+          )}
 
           <div className="grid grid-cols-4 gap-2">
             {DICE.map((sides) =>

@@ -21,7 +21,7 @@ export function PointsCard({ label, score, editing, onScoreChange }: PointsCardP
   return (
     <div className="flex flex-col items-center">
       <div className="flex w-full flex-col items-center rounded-t-xl rounded-b-3xl border-2 border-violet/40 bg-secondary/50 px-2 pt-2 pb-5">
-        <span className="truncate text-[0.7rem] tracking-widest">{label}</span>
+        <span className="w-full truncate text-center text-xs tracking-wide">{label}</span>
         <RollButton
           label={`Prova di ${label}`}
           bonus={modifier}

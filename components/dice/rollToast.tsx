@@ -44,7 +44,10 @@ export function RollToast({ roll }: { roll: LoggedRoll }) {
       )}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-base tracking-wide">{roll.label}</p>
+        <p className="truncate text-base tracking-wide">
+          {roll.label}
+          {roll.hidden && <span className="ml-2 text-xs text-muted-foreground">· nascosto</span>}
+        </p>
         <p className="text-xs text-muted-foreground">{roll.notation}</p>
         <div className="mt-1 text-sm">
           <RollDice roll={roll} />

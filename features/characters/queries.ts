@@ -76,6 +76,7 @@ export async function getCharacterForViewer(
   character: Character
   access: CharacterAccess
   requests: EditRequestView[]
+  campaignId: string | null
 } | null> {
   const row = await prisma.character.findUnique({
     where: { id },
@@ -83,6 +84,7 @@ export async function getCharacterForViewer(
       id: true,
       sheet: true,
       ownerId: true,
+      campaignId: true,
       campaign: { select: { members: { where: { userId, role: "MASTER" }, select: { id: true } } } },
     },
   })
@@ -96,6 +98,7 @@ export async function getCharacterForViewer(
     character: { ...parseSheet(row.id, row.sheet), id: row.id },
     access,
     requests: await listPendingRequests(row.id),
+    campaignId: row.campaignId,
   }
 }
 
