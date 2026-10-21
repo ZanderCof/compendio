@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ThemeProvider } from "@/components/theme/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 // Nodesto (tutto maiuscolo, stretto) solo per titoli, navigazione, badge e pulsanti
@@ -44,10 +45,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <Navbar />
-          <div className="flex flex-1 flex-col">{children}</div>
-          <Footer />
-          <Toaster position="top-center" offset={72} mobileOffset={64} />
+          <TooltipProvider delayDuration={250}>
+            <Navbar />
+            <div className="flex flex-1 flex-col">{children}</div>
+            <Footer />
+            <Toaster position="top-center" offset={72} mobileOffset={64} />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -5,11 +5,8 @@ import {
   BicepsFlexed,
   Feather,
   ListChecks,
-  CircleAlert,
   Crown,
-  CircleCheck,
   Eye,
-  LoaderCircle,
   Pencil,
   ScrollText,
   Sparkles,
@@ -28,6 +25,7 @@ import type { Character } from "@/features/characters/types"
 import type { EditRequestView } from "@/features/editRequests/queries"
 import { AbilitiesSection } from "./abilitiesSection"
 import { AttacksTable } from "./attacksTable"
+import { SaveIndicator } from "./saveIndicator"
 import { CharacterHeader } from "./characterHeader"
 import { CharacterProvider, useCharacter } from "./characterProvider"
 import { CombatStats } from "./combatStats"
@@ -62,12 +60,6 @@ export function CharacterSheet({
     </CharacterProvider>
   )
 }
-
-const SAVE_STATUS = {
-  saved: { icon: CircleCheck, label: "Salvato", className: "text-muted-foreground" },
-  saving: { icon: LoaderCircle, label: "Salvataggio…", className: "text-muted-foreground [&_svg]:animate-spin" },
-  error: { icon: CircleAlert, label: "Non salvato", className: "text-destructive" },
-} as const
 
 function DeleteCharacterButton() {
   const { character } = useCharacter()
@@ -105,15 +97,11 @@ function SheetToolbar() {
     )
   }
 
-  const status = SAVE_STATUS[saveStatus]
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
       <AdvantageToggle />
       <div className="flex items-center gap-3">
-        <span className={`flex items-center gap-1 text-xs ${status.className}`} role="status">
-          <status.icon className="size-3.5" />
-          {status.label}
-        </span>
+        <SaveIndicator status={saveStatus} />
         {editing && <DeleteCharacterButton />}
         <Button
           variant={editing ? "default" : "outline"}

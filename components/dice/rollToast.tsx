@@ -1,3 +1,4 @@
+import { D20 } from "@/components/brand/d20"
 import { cn } from "@/lib/utils"
 import { signed } from "@/features/characters/rules"
 import type { LoggedRoll } from "./diceProvider"
@@ -43,6 +44,10 @@ export function RollToast({ roll }: { roll: LoggedRoll }) {
         fumble && "border-destructive ring-2 ring-destructive/30"
       )}
     >
+      {/* Per i tiri di d20: il dado rotola e si posa sul numero uscito */}
+      {roll.natural !== null && (
+        <D20 value={roll.natural} motion="toss" className={cn("size-14 shrink-0", fumble && "grayscale")} />
+      )}
       <div className="min-w-0 flex-1">
         <p className="truncate text-base tracking-wide">
           {roll.label}

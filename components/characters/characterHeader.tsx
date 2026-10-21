@@ -2,35 +2,51 @@
 
 import { Sparkle } from "lucide-react"
 
+import { CountUp } from "@/components/effects/countUp"
 import { RollButton } from "@/components/dice/rollButton"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { classTone } from "@/features/characters/look"
 import { cn } from "@/lib/utils"
-import { initiative, proficiencyBonus, signed } from "@/features/characters/rules"
+import { initiative, proficiencyBonus } from "@/features/characters/rules"
 import { useCharacter } from "./characterProvider"
-import { HpEditor } from "./hpEditor"
+import { HpRing } from "./hpRing"
 import { NumberField } from "./numberField"
 import { initials } from "@/lib/initials"
 
-function QuickStat({ label, children }: { label: string; children: React.ReactNode }) {
+/** Statistica rapida: valore grande e nome sotto, con la spiegazione nel tooltip del nome. */
+function QuickStat({ label, help, children }: { label: string; help: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center">
       <span className="flex h-8 items-center text-2xl leading-none">{children}</span>
-      <span className="mt-1 text-center text-xs tracking-widest text-muted-foreground">
-        {label}
-      </span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="mt-1 cursor-help rounded text-center text-xs tracking-widest text-muted-foreground underline decoration-dotted underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {label}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-60 text-center text-sm">{help}</TooltipContent>
+      </Tooltip>
     </div>
   )
 }
 
 export function CharacterHeader() {
   const { character, dispatch, editing } = useCharacter()
-  const { hitPoints } = character
   const initialsText = initials(character.name)
 
   return (
     <header className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         {/* Avatar: per ora le iniziali, poi un'immagine */}
-        <div className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-plum to-violet text-2xl text-primary-foreground ring-2 ring-primary/40">
+        <div
+          className={cn(
+            "flex size-14 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-plum to-violet text-2xl text-primary-foreground ring-3 ring-offset-2 ring-offset-background",
+            classTone(character.className).ring
+          )}
+        >
           {initialsText}
         </div>
 
@@ -67,29 +83,17 @@ export function CharacterHeader() {
           </button>
         </div>
 
-        <HpEditor>
-          <button
-            type="button"
-            aria-label="Modifica punti ferita"
-            className={cn(
-              "flex shrink-0 flex-col items-center rounded-lg bg-primary px-3 py-1.5 text-primary-foreground transition-transform hover:brightness-110 active:scale-[0.97]",
-              hitPoints.current === 0 && "bg-destructive text-white"
-            )}
-          >
-            <span className="text-xl leading-tight tabular-nums">
-              {hitPoints.current}/{hitPoints.max}
-            </span>
-            <span className="text-xs tracking-widest opacity-90">Punti Ferita</span>
-            {hitPoints.temp > 0 && (
-              <span className="text-xs opacity-80">+{hitPoints.temp} temp</span>
-            )}
-          </button>
-        </HpEditor>
+        <HpRing />
       </div>
 
       <div className="grid grid-cols-4 gap-2 rounded-xl border bg-card px-2 py-3">
-        <QuickStat label="Competenza">{signed(proficiencyBonus(character.level))}</QuickStat>
-        <QuickStat label="Velocità">
+        <QuickStat
+          label="Competenza"
+          help="Si somma ai tiri in cui sei competente. Cresce con il livello: +2 dal 1° al 4°, +3 dal 5° all'8° e così via."
+        >
+          <CountUp value={proficiencyBonus(character.level)} signed />
+        </QuickStat>
+        <QuickStat label="Velocità" help="Quanti metri puoi percorrere nel tuo turno.">
           {editing ? (
             <NumberField
               label="Velocità"
@@ -98,17 +102,23 @@ export function CharacterHeader() {
             />
           ) : (
             <>
-              {character.speed}
+              <CountUp value={character.speed} />
               <span className="ml-0.5 text-xs text-muted-foreground">m</span>
             </>
           )}
         </QuickStat>
-        <QuickStat label="Iniziativa">
+        <QuickStat
+          label="Iniziativa"
+          help="Il tuo modificatore di Destrezza: si somma al d20 per decidere l'ordine dei turni. Tocca il valore per tirare."
+        >
           <RollButton label="Iniziativa" bonus={initiative(character)} className="px-2">
-            {signed(initiative(character))}
+            <CountUp value={initiative(character)} signed />
           </RollButton>
         </QuickStat>
-        <QuickStat label="Classe Armatura">
+        <QuickStat
+          label="Classe Armatura"
+          help="Quanto è difficile colpirti: un attacco va a segno se il tiro eguaglia o supera la tua CA."
+        >
           {editing ? (
             <NumberField
               label="Classe Armatura"
@@ -116,7 +126,7 @@ export function CharacterHeader() {
               onCommit={(value) => dispatch({ type: "setStat", stat: "armorClass", value })}
             />
           ) : (
-            character.armorClass
+            <CountUp value={character.armorClass} />
           )}
         </QuickStat>
       </div>

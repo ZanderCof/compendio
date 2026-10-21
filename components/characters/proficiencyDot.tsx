@@ -21,9 +21,10 @@ export function ProficiencyDot({ value, editing, label, onClick }: ProficiencyDo
   const dot = (
     <span
       className={cn(
-        "block size-2.5 shrink-0 rounded-full border",
-        value !== "none" && "border-primary bg-primary",
-        value === "expertise" && "ring-2 ring-primary/30"
+        "block size-2.5 shrink-0 rounded-full border border-muted-foreground/50",
+        // Competente: pieno e luminoso; maestria: con un anello in più
+        value !== "none" && "border-primary bg-primary shadow-[0_0_8px_1px] shadow-primary/60",
+        value === "expertise" && "ring-2 ring-primary/40 ring-offset-1 ring-offset-card"
       )}
     />
   )

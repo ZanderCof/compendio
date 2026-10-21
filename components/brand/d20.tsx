@@ -11,9 +11,10 @@ type D20Props = {
   /**
    * spin: ruota lentamente e fluttua (home)
    * roll: rotola, rimbalza e si ferma (pagine 404 ed errore)
+   * toss: lancio veloce, gira e si posa (risultato di un tiro)
    * none: fermo
    */
-  motion?: "spin" | "roll" | "none"
+  motion?: "spin" | "roll" | "toss" | "none"
   className?: string
 }
 
@@ -31,7 +32,13 @@ export function D20({ value = 20, motion = "none", className }: D20Props) {
 
     // gsap.context: alla chiusura del componente tutte le animazioni si fermano da sole
     const ctx = gsap.context(() => {
-      if (motion === "spin") {
+      if (motion === "toss") {
+        gsap
+          .timeline()
+          .from(svg, { rotation: -540, scale: 0.3, duration: 0.55, ease: "power3.out", transformOrigin: "50% 50%" })
+          .to(svg, { scale: 1.12, duration: 0.1, ease: "power1.out" })
+          .to(svg, { scale: 1, duration: 0.25, ease: "back.out(3)" })
+      } else if (motion === "spin") {
         gsap.to(svg, { rotation: 360, duration: 24, ease: "none", repeat: -1, transformOrigin: "50% 50%" })
         gsap.to(svg, { y: -10, duration: 2.6, ease: "sine.inOut", yoyo: true, repeat: -1 })
       } else {
