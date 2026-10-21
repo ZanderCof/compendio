@@ -3,14 +3,24 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+/**
+ * Le migrazioni usano la connessione diretta: con Neon il pooler (PgBouncer) non regge il lock
+ * che Prisma prende durante `migrate deploy` (errore P1002 in build su Vercel).
+ * Se DIRECT_URL non è impostata, si ricava da DATABASE_URL togliendo "-pooler" dall'host di Neon.
+ * L'app invece usa DATABASE_URL (pooled), vedi lib/prisma.ts
+ */
+function migrationUrl() {
+  const direct = process.env["DIRECT_URL"];
+  if (direct) return direct;
+  return process.env["DATABASE_URL"]?.replace(/-pooler(?=\.)/, "");
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    // Le migrazioni usano la connessione diretta: con Neon il pooler (PgBouncer) può bloccarle.
-    // L'app invece usa DATABASE_URL (pooled), vedi lib/prisma.ts
-    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
+    url: migrationUrl(),
   },
 });
