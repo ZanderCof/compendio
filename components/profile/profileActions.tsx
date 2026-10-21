@@ -1,5 +1,6 @@
 "use client"
 
+import { useSyncExternalStore } from "react"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { LogOut, Monitor, Moon, Sun } from "lucide-react"
@@ -16,8 +17,13 @@ const THEMES: { value: ThemeChoice; label: string; icon: typeof Sun }[] = [
 ]
 
 /** Scelta del tema: tre pulsanti grandi, il cerchio del nuovo tema parte da quello toccato. */
+const subscribe = () => () => {}
+
 export function ThemePicker() {
-  const { theme, setTheme } = useTheme()
+  const { theme: storedTheme, setTheme } = useTheme()
+  // Il tema salvato si conosce solo nel browser: sul server (e alla prima idratazione) nessuno è selezionato
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false)
+  const theme = mounted ? storedTheme : undefined
   return (
     <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tema">
       {THEMES.map((t) => (
