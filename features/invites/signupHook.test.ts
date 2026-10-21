@@ -207,6 +207,16 @@ describe("richieste di accesso", () => {
   })
 })
 
+describe("admin", () => {
+  it("un'email in ADMIN_EMAILS entra sempre, anche senza inviti (database vuoto)", async () => {
+    vi.stubEnv("ADMIN_EMAILS", "capo@example.com")
+    const { result, users } = await googleSignIn(makeAuth(), "Capo@Example.com")
+    expect(result.error).toBeFalsy()
+    expect(users[0]).toMatchObject({ email: "capo@example.com", joinedVia: "admin" })
+    expect(fake.requests).toHaveLength(0)
+  })
+})
+
 describe("INVITE_ONLY spento", () => {
   it.each([["false"], [undefined]])("INVITE_ONLY=%s: registrazione libera come prima, codici intatti", async (value) => {
     if (value === undefined) vi.stubEnv("INVITE_ONLY", undefined)

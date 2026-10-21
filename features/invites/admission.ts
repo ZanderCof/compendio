@@ -40,6 +40,8 @@ export async function consumeInvite(db: Db, code: string, now = new Date()): Pro
 
 export type AdmissionInput = {
   email: string
+  /** Email degli admin (ADMIN_EMAILS): entrano sempre, anche a database vuoto */
+  adminEmails?: string[]
   /** Codice dal cookie di /invite/[code] */
   betaCode?: string | null
   /** Codice campagna dal cookie di /join/[code] */
@@ -48,16 +50,19 @@ export type AdmissionInput = {
 
 export type Admission =
   | { allowed: true; via: "beta"; inviteCodeId: string }
-  | { allowed: true; via: "join" | "email" | "request" }
+  | { allowed: true; via: "join" | "email" | "request" | "admin" }
   | { allowed: false }
 
 /**
  * Un nuovo utente può registrarsi se ha (in quest'ordine): un invito alla beta ancora valido,
  * il link di una campagna esistente, un invito via email in attesa per il suo indirizzo,
- * oppure una richiesta di accesso approvata da un admin.
+ * oppure una richiesta di accesso approvata da un admin. Gli admin entrano sempre.
  * Gli utenti già registrati non passano di qui: entrano sempre.
  */
 export async function admitNewUser(db: Db, input: AdmissionInput, now = new Date()): Promise<Admission> {
+  const email = input.email.toLowerCase()
+  if (input.adminEmails?.includes(email)) return { allowed: true, via: "admin" }
+
   if (input.betaCode) {
     const inviteCodeId = await consumeInvite(db, input.betaCode, now)
     if (inviteCodeId) return { allowed: true, via: "beta", inviteCodeId }
@@ -69,7 +74,6 @@ export async function admitNewUser(db: Db, input: AdmissionInput, now = new Date
     if (campaign) return { allowed: true, via: "join" }
   }
 
-  const email = input.email.toLowerCase()
   const invitation = await db.invitation.findFirst({ where: { email, status: "PENDING" }, select: { id: true } })
   if (invitation) return { allowed: true, via: "email" }
 

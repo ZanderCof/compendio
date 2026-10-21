@@ -41,10 +41,16 @@ export async function listUsers(search: string, now = new Date()) {
       joinedVia: true,
       inviteCode: { select: { label: true } },
       _count: { select: { characters: true, memberships: true } },
+      // Campagne in cui è master: quelle senza altri master spariscono se il profilo viene eliminato
+      memberships: {
+        where: { role: "MASTER" },
+        select: { campaign: { select: { name: true, _count: { select: { members: { where: { role: "MASTER" } } } } } } },
+      },
     },
   })
-  return users.map((user) => ({
+  return users.map(({ memberships, ...user }) => ({
     ...user,
+    soleMasterOf: memberships.filter((m) => m.campaign._count.members === 1).map((m) => m.campaign.name),
     online: !!user.lastSeenAt && now.getTime() - user.lastSeenAt.getTime() < ONLINE_WINDOW_MS,
   }))
 }

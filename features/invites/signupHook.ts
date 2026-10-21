@@ -1,5 +1,6 @@
 import { APIError } from "better-auth/api"
 
+import { adminEmails } from "@/lib/adminEmails"
 import { prisma } from "@/lib/prisma"
 import { admitNewUser, recordAccessRequest } from "./admission"
 import { BETA_INVITE_COOKIE, INVITE_REQUIRED_ERROR, isInviteOnly, JOIN_INVITE_COOKIE } from "./rules"
@@ -23,6 +24,7 @@ export async function beforeUserCreate(
 
   const admission = await admitNewUser(prisma, {
     email: user.email,
+    adminEmails: adminEmails(),
     betaCode: ctx?.getCookie(BETA_INVITE_COOKIE),
     joinCode: ctx?.getCookie(JOIN_INVITE_COOKIE),
   })

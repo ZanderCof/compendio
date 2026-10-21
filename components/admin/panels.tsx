@@ -1,6 +1,7 @@
 import Form from "next/form"
 import { Search } from "lucide-react"
 
+import { DeleteUserButton } from "@/components/admin/deleteUserButton"
 import { RequestActions } from "@/components/admin/requestActions"
 import { CopyInviteLink, CreateInviteForm, RevokeInviteButton } from "@/components/invites/adminInvites"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { listAccessRequests, listUsers } from "@/features/admin/queries"
 import { listInviteCodes } from "@/features/invites/queries"
 import { checkInvite } from "@/features/invites/rules"
+import { isAdminEmail } from "@/lib/admin"
 import { initials } from "@/lib/initials"
 import { cn } from "@/lib/utils"
 
@@ -36,6 +38,7 @@ const JOINED_VIA: Record<string, string> = {
   join: "Link campagna",
   email: "Invito email",
   request: "Richiesta approvata",
+  admin: "Admin",
 }
 
 function UserAvatar({ name, image, online }: { name: string; image: string | null; online?: boolean }) {
@@ -92,6 +95,18 @@ export async function UsersPanel({ search }: { search: string }) {
                   {JOINED_VIA[user.joinedVia] ?? user.joinedVia}
                   {user.inviteCode && `: ${user.inviteCode.label}`}
                 </Badge>
+              )}
+              {/* Gli admin (compreso te) non si eliminano da qui */}
+              {isAdminEmail(user.email) ? (
+                <Badge>Admin</Badge>
+              ) : (
+                <DeleteUserButton
+                  id={user.id}
+                  name={user.name}
+                  email={user.email}
+                  characters={user._count.characters}
+                  soleMasterOf={user.soleMasterOf}
+                />
               )}
             </div>
           </li>

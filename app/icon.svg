@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- d20 di Compendio: stessa geometria di components/brand/d20.tsx, colori della palette -->
+  <defs>
+    <linearGradient id="face" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#AA3E98"/>
+      <stop offset="100%" stop-color="#9368B7"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#9368B7"/>
+      <stop offset="100%" stop-color="#9297C4"/>
+    </linearGradient>
+  </defs>
+  <polygon points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5" fill="url(#side)"/>
+  <g fill="#000" fill-opacity="0.18">
+    <polygon points="50,3 9,26.5 50,26"/>
+    <polygon points="91,73.5 50,97 74,66"/>
+    <polygon points="9,73.5 26,66 9,26.5"/>
+  </g>
+  <g fill="#fff" fill-opacity="0.14">
+    <polygon points="50,3 91,26.5 50,26"/>
+    <polygon points="91,26.5 91,73.5 74,66"/>
+    <polygon points="9,73.5 50,97 26,66"/>
+  </g>
+  <polygon points="50,26 74,66 26,66" fill="url(#face)"/>
+  <g stroke="#fff" stroke-opacity="0.7" stroke-width="2.5" stroke-linejoin="round" fill="none">
+    <polygon points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5"/>
+    <polygon points="50,26 74,66 26,66"/>
+    <path d="M50,26 L50,3 M50,26 L9,26.5 M50,26 L91,26.5 M74,66 L91,26.5 M74,66 L91,73.5 M74,66 L50,97 M26,66 L9,26.5 M26,66 L9,73.5 M26,66 L50,97"/>
+  </g>
+</svg>
