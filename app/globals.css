@@ -63,6 +63,9 @@
 }
 
 :root {
+  /* Altezza della navbar: si restringe dopo 40 px di scroll (data-scrolled, vedi NavbarScroll) */
+  --nav-h: 3.75rem;
+
   /* Palette */
   --palette-plum: #AA3E98;
   --palette-violet: #9368B7;
@@ -181,6 +184,21 @@
     letter-spacing: 0.02em;
   }
 }
+html[data-scrolled] {
+  --nav-h: 3.25rem;
+}
+
+/* ─── Cambio tema: il nuovo tema si apre in un cerchio dal punto toccato (switchTheme.ts) ─── */
+html.theme-switching::view-transition-old(root),
+html.theme-switching::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html.theme-switching::view-transition-group(site-header) {
+  /* Durante il cambio tema anche la navbar cambia colore insieme al resto */
+  display: none;
+}
+
 /* ─── Transizioni tra le pagine (React ViewTransition, vedi app/template.tsx) ─── */
 ::view-transition-old(.page-exit) {
   animation: 150ms ease-in both page-fade-out;

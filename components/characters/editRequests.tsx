@@ -232,7 +232,7 @@ export function ProposalBar() {
   }
 
   return (
-    <section className="sticky top-16 z-20 flex flex-col gap-3 rounded-xl border-2 border-primary bg-card/95 p-4 shadow-lg backdrop-blur">
+    <section className="sticky top-[calc(var(--nav-h)+0.5rem)] z-20 flex flex-col gap-3 rounded-xl border-2 border-primary bg-card/95 p-4 shadow-lg backdrop-blur">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-2 tracking-wide">
           <Crown className="size-4 text-primary" />

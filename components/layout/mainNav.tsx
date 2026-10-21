@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { motion, useReducedMotion } from "motion/react"
 import { Menu } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -34,25 +35,38 @@ function Dot({ count, label }: { count?: number; label: string }) {
  * Senza pathname (mentre la pagina carica) nessun link è evidenziato.
  */
 export function NavItems({ pathname = "", badges = {} }: { pathname?: string; badges?: Badges }) {
+  const reducedMotion = useReducedMotion()
+
   return (
     <>
       <nav className="hidden items-center gap-1 md:flex" aria-label="Principale">
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            // Le pagine della navbar si precaricano: la navigazione parte subito
-            prefetch
-            aria-current={isActive(pathname, link.href) ? "page" : undefined}
-            className={cn(
-              "font-display rounded-lg px-3 py-1.5 tracking-wide text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-              isActive(pathname, link.href) && "bg-secondary text-primary"
-            )}
-          >
-            {link.label}
-            <Dot count={badges[link.href]} label="da guardare" />
-          </Link>
-        ))}
+        {NAV_LINKS.map((link) => {
+          const active = isActive(pathname, link.href)
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              // Le pagine della navbar si precaricano: la navigazione parte subito
+              prefetch
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "font-display relative z-0 rounded-lg px-3 py-1.5 tracking-wide transition-colors",
+                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {/* Indicatore della voce attiva: scorre da un link all'altro (layout animation) */}
+              {active && (
+                <motion.span
+                  layoutId="nav-active"
+                  className="absolute inset-0 -z-10 rounded-lg bg-secondary"
+                  transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
+                />
+              )}
+              {link.label}
+              <Dot count={badges[link.href]} label="da guardare" />
+            </Link>
+          )
+        })}
       </nav>
 
       <DropdownMenu>
@@ -67,10 +81,7 @@ export function NavItems({ pathname = "", badges = {} }: { pathname?: string; ba
         <DropdownMenuContent align="start" className="w-48">
           {NAV_LINKS.map((link) => (
             <DropdownMenuItem key={link.href} asChild>
-              <Link
-                href={link.href}
-                className={cn(isActive(pathname, link.href) && "text-primary")}
-              >
+              <Link href={link.href} className={cn("font-display", isActive(pathname, link.href) && "text-primary")}>
                 {link.label}
                 <Dot count={badges[link.href]} label="da guardare" />
               </Link>

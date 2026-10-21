@@ -1,45 +1,28 @@
 "use client"
 
-import { Monitor, Moon, Sun } from "lucide-react"
+import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { switchTheme } from "./switchTheme"
 
+/** Pulsante sole/luna per chi non ha fatto l'accesso (chi è dentro ha il tema nel menu dell'avatar). */
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { setTheme } = useTheme()
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Cambia tema">
-          {/* L'icona dipende dalla classe "dark", non da JavaScript: niente salti al caricamento */}
-          <Sun className="dark:hidden" />
-          <Moon className="hidden dark:block" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-          <DropdownMenuRadioItem value="light">
-            <Sun />
-            Chiaro
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="dark">
-            <Moon />
-            Scuro
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="system">
-            <Monitor />
-            Sistema
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Cambia tema chiaro/scuro"
+      onClick={(e) => {
+        const dark = document.documentElement.classList.contains("dark")
+        switchTheme(dark ? "light" : "dark", setTheme, { x: e.clientX, y: e.clientY })
+      }}
+    >
+      {/* L'icona dipende dalla classe "dark", non da JavaScript: niente salti al caricamento */}
+      <Sun className="dark:hidden" />
+      <Moon className="hidden dark:block" />
+    </Button>
   )
 }

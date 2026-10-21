@@ -29,7 +29,7 @@ export default function CampaignsPage() {
           <CampaignList />
         </Suspense>
 
-        <div className="flex flex-col gap-4 lg:sticky lg:top-20">
+        <div className="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--nav-h)+1rem)]">
           <SheetSection title="Nuova campagna">
             <CreateCampaignForm />
           </SheetSection>

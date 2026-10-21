@@ -285,7 +285,7 @@ export function PlaySession({
         )}
         <div className="grid items-start gap-6 lg:grid-cols-[3fr_2fr]">
           {sheet}
-          <div className="flex flex-col gap-6 lg:sticky lg:top-20">
+          <div className="flex flex-col gap-6 lg:sticky lg:top-[calc(var(--nav-h)+1rem)]">
             {feed}
             <SheetSection title="Chat">
               <div className="h-112">{chat}</div>
@@ -318,7 +318,7 @@ export function PlaySession({
       // Su telefono: esattamente lo schermo sotto la navbar, senza scroll né footer (vedi globals.css)
       data-session-fullscreen
       className={cn(
-        "fixed inset-x-0 top-14 bottom-0 z-20 flex flex-col bg-background px-3 pt-2",
+        "fixed inset-x-0 top-(--nav-h) bottom-0 z-20 flex flex-col bg-background px-3 pt-2",
         "lg:static lg:z-auto lg:gap-3 lg:bg-transparent lg:p-0",
         // Il pulsante dei dadi sta sopra la barra in basso (variabile letta da DiceTray)
         "[--bottom-bar:4.5rem] lg:[--bottom-bar:0px]"

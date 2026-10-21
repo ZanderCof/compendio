@@ -96,7 +96,7 @@ export default function HomePage() {
       </section>
 
       {/* Come funziona */}
-      <section id="come-funziona" className="scroll-mt-16 border-y bg-secondary/40">
+      <section id="come-funziona" className="scroll-mt-[calc(var(--nav-h)+1rem)] border-y bg-secondary/40">
         <div className="mx-auto w-full max-w-6xl px-4 py-16">
           <h2 className="text-3xl tracking-wide md:text-4xl">Come funziona</h2>
           <ol className="mt-8 grid gap-6 md:grid-cols-3">
