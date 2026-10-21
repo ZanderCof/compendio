@@ -19,6 +19,11 @@ model User {
   image         String?
   // Ultima volta che il sito era aperto: serve per lo stato online/offline
   lastSeenAt    DateTime?
+  // Codice della beta con cui si è registrato (solo con INVITE_ONLY attivo)
+  inviteCodeId  String?
+  inviteCode    InviteCode? @relation("InviteRedemptions", fields: [inviteCodeId], references: [id], onDelete: SetNull)
+  // Come è entrato durante la beta: beta, join, email, request (null = prima della beta o registrazione libera)
+  joinedVia     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -34,8 +39,52 @@ model User {
   journalEntries  JournalEntry[]
   datePolls       DatePoll[]
   dateVotes       DateVote[]
+  inviteCodes     InviteCode[] @relation("InviteCreator")
+  accessDecisions AccessRequest[]
 
   @@map("user")
+}
+
+// ─── Inviti alla beta ────────────────────────────────────────────
+
+model InviteCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  label       String
+  maxUses     Int       @default(1)
+  uses        Int       @default(0)
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  // Null se creato dallo script da terminale senza un admin associato
+  createdById String?
+  createdBy   User?     @relation("InviteCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+
+  redeemedBy User[] @relation("InviteRedemptions")
+}
+
+// Chi ha provato a registrarsi senza invito: l'admin approva o rifiuta.
+// Non è un utente: l'account si crea solo al primo accesso dopo l'approvazione.
+model AccessRequest {
+  id            String              @id @default(cuid())
+  email         String              @unique
+  name          String
+  image         String?
+  status        AccessRequestStatus @default(PENDING)
+  attempts      Int                 @default(1)
+  createdAt     DateTime            @default(now())
+  lastAttemptAt DateTime            @default(now())
+  decidedAt     DateTime?
+  decidedById   String?
+  decidedBy     User?               @relation(fields: [decidedById], references: [id], onDelete: SetNull)
+
+  @@index([status, lastAttemptAt])
+}
+
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Session {

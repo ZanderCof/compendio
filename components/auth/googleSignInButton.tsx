@@ -11,13 +11,25 @@ function safeNext(value: string | null) {
   return value && value.startsWith("/") && !value.startsWith("//") ? value : "/"
 }
 
-export function GoogleSignInButton() {
+type GoogleSignInButtonProps = {
+  /** Dove andare dopo l'accesso; se manca, usa ?next= dell'URL */
+  callbackURL?: string
+  /** Eseguita prima del redirect a Google (es. salvare il cookie dell'invito) */
+  beforeSignIn?: () => Promise<boolean>
+}
+
+export function GoogleSignInButton({ callbackURL, beforeSignIn }: GoogleSignInButtonProps) {
   const [pending, setPending] = useState(false)
 
   async function handleClick() {
     setPending(true)
-    const next = safeNext(new URLSearchParams(window.location.search).get("next"))
-    const { error } = await signIn.social({ provider: "google", callbackURL: next })
+    if (beforeSignIn && !(await beforeSignIn())) {
+      setPending(false)
+      return
+    }
+    const next = callbackURL ?? safeNext(new URLSearchParams(window.location.search).get("next"))
+    // Se la registrazione viene rifiutata (beta su invito) Better Auth rimanda qui con ?error=
+    const { error } = await signIn.social({ provider: "google", callbackURL: next, errorCallbackURL: "/accesso-su-invito" })
     if (error) {
       toast.error("Accesso non riuscito", { description: error.message })
       setPending(false)
