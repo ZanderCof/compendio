@@ -9,7 +9,8 @@ import { UserMenu } from "./userMenu"
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
+    // viewTransitionName: la navbar resta ferma durante le transizioni tra le pagine
+    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur" style={{ viewTransitionName: "site-header" }}>
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-4">
         {/* Percorso e avvisi sono noti solo a runtime: finché non arrivano, link semplici */}
         <Suspense fallback={<NavItems />}>
@@ -18,7 +19,7 @@ export function Navbar() {
 
         <Link
           href="/"
-          className="flex items-center gap-2 text-xl tracking-wide md:order-first md:mr-4"
+          className="font-display flex items-center gap-2 text-xl tracking-wide md:order-first md:mr-4"
         >
           <span className="flex size-8 items-center justify-center rounded-lg bg-linear-to-br from-plum to-violet text-primary-foreground">
             <Dices className="size-5" />

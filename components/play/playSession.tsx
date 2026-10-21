@@ -474,7 +474,7 @@ export function PlaySession({
             onClick={() => setMobileTab(tab.value)}
             aria-current={mobileTab === tab.value ? "page" : undefined}
             className={cn(
-              "flex h-16 flex-col items-center justify-center gap-0.5 text-xs transition-colors",
+              "font-display flex h-16 flex-col items-center justify-center gap-0.5 text-xs tracking-wide transition-colors",
               mobileTab === tab.value ? "text-primary" : "text-muted-foreground"
             )}
           >

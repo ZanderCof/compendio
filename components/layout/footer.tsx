@@ -7,7 +7,7 @@ export function Footer() {
     <footer className="mt-auto border-t bg-muted/40">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 sm:grid-cols-[2fr_1fr_2fr]">
         <div>
-          <p className="text-lg tracking-wide">Compendio</p>
+          <p className="font-display text-lg tracking-wide">Compendio</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Schede, dadi e campagne per il tuo gruppo di gioco.
           </p>

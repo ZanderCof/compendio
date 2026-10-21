@@ -41,9 +41,11 @@ export function NavItems({ pathname = "", badges = {} }: { pathname?: string; ba
           <Link
             key={link.href}
             href={link.href}
+            // Le pagine della navbar si precaricano: la navigazione parte subito
+            prefetch
             aria-current={isActive(pathname, link.href) ? "page" : undefined}
             className={cn(
-              "rounded-lg px-3 py-1.5 tracking-wide text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+              "font-display rounded-lg px-3 py-1.5 tracking-wide text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
               isActive(pathname, link.href) && "bg-secondary text-primary"
             )}
           >

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
@@ -7,14 +7,21 @@ import { ThemeProvider } from "@/components/theme/themeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
+// Nodesto (tutto maiuscolo, stretto) solo per titoli, navigazione, badge e pulsanti
 const nodesto = localFont({
-  variable: "--font-sans",
+  variable: "--font-display",
   src: [
     { path: "./fonts/NodestoCapsCondensed-Regular.otf", weight: "400", style: "normal" },
     { path: "./fonts/NodestoCapsCondensed-Italic.otf", weight: "400", style: "italic" },
     { path: "./fonts/NodestoCapsCondensed-Bold.otf", weight: "700", style: "normal" },
     { path: "./fonts/NodestoCapsCondensed-BoldItalic.otf", weight: "700", style: "italic" },
   ],
+});
+
+// Testi, form e chat: un sans leggibile
+const geist = Geist({
+  variable: "--font-sans",
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
@@ -33,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="it"
       // next-themes aggiunge la classe del tema prima che React parta: la differenza è voluta
       suppressHydrationWarning
-      className={`${nodesto.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geist.variable} ${nodesto.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
