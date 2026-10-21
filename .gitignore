@@ -69,3 +69,6 @@ desktop.ini
 # ─── Misc ───────────────────────────────────────────────────
 *.pem
 *.log
+
+# Immagini caricate in sviluppo (in produzione stanno su Vercel Blob)
+/public/uploads

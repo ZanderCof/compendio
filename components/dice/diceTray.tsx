@@ -34,7 +34,7 @@ export function DiceTray() {
           size="icon-lg"
           aria-label="Apri i dadi"
           className={cn(
-            "fixed right-4 bottom-4 z-30 size-14 rounded-full bg-linear-to-br from-plum to-violet shadow-lg ring-4 ring-background",
+            "fixed right-4 bottom-[calc(1rem+var(--bottom-bar,0px))] z-30 size-14 rounded-full bg-linear-to-br from-plum to-violet shadow-lg ring-4 ring-background",
             hidden && "from-muted-foreground to-foreground/70"
           )}
         >

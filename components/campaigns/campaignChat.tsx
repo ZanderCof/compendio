@@ -31,10 +31,13 @@ export function CampaignChat({
   campaignId,
   viewerId,
   initial,
+  fill = false,
 }: {
   campaignId: string
   viewerId: string
   initial: ChatMessageView[]
+  /** Riempie l'altezza del contenitore (pannello della sessione): il campo di scrittura resta in fondo */
+  fill?: boolean
 }) {
   const [messages, setMessages] = useState(initial)
   const [draft, setDraft] = useState("")
@@ -76,14 +79,14 @@ export function CampaignChat({
   }
 
   return (
-    <div className="flex h-[28rem] flex-col">
+    <div className={cn("flex flex-col", fill ? "h-full min-h-0" : "h-[28rem]")}>
       <div
         ref={listRef}
         onScroll={(e) => {
           const el = e.currentTarget
           stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40
         }}
-        className="flex flex-1 flex-col gap-1 overflow-y-auto pr-1"
+        className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-1"
         aria-live="polite"
         aria-label="Messaggi della chat"
       >

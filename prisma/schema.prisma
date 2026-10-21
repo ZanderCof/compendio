@@ -114,6 +114,9 @@ model Campaign {
   datePolls     DatePoll[]
   // Data della prossima sessione, scelta dal master dal sondaggio
   nextSessionAt DateTime?
+  // Come si contano le diagonali sulla mappa (5e base oppure variante 1-2-1)
+  diagonalRule  DiagonalRule   @default(STANDARD)
+  maps          GameMap[]
 
   @@map("campaign")
 }
@@ -284,6 +287,80 @@ model DateVote {
   @@map("date_vote")
 }
 
+// ─── Mappa di gioco ──────────────────────────────────────────────
+
+enum DiagonalRule {
+  STANDARD // ogni diagonale costa 1 cella
+  ALTERNATE // 1-2-1: una diagonale sì e una no costa 2 celle
+}
+
+// Piccola e Media occupano 1 cella, Grande 2×2, Enorme 3×3, Mastodontica 4×4
+enum TokenSize {
+  MEDIUM
+  LARGE
+  HUGE
+  GARGANTUAN
+}
+
+model GameMap {
+  id               String   @id @default(cuid())
+  name             String
+  imageUrl         String
+  imageWidth       Int
+  imageHeight      Int
+  // Griglia: celle quadrate da 1,5 m, calibrate sull'immagine
+  cols             Int
+  rows             Int
+  cellSize         Float
+  offsetX          Float    @default(0)
+  offsetY          Float    @default(0)
+  showGrid         Boolean  @default(true)
+  // Una sola mappa attiva per campagna (lo garantiscono le azioni)
+  active           Boolean  @default(false)
+  // I giocatori vedono muri e ostacoli (di solito sono già disegnati sull'immagine)
+  showObstacles    Boolean  @default(false)
+  // In combattimento il giocatore muove solo nel suo turno
+  turnLock         Boolean  @default(true)
+  playersOpenDoors Boolean  @default(false)
+  // Ostacoli: celle bloccate, terreno difficile, muri e porte sui bordi.
+  // Forma validata con zod in features/maps/layout.ts
+  layout           Json
+  // Cresce a ogni modifica: i browser controllano solo questo numero per sapere se ricaricare
+  version          Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  campaignId String
+  campaign   Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tokens     MapToken[]
+
+  @@index([campaignId, active])
+  @@map("game_map")
+}
+
+model MapToken {
+  id       String    @id @default(cuid())
+  name     String
+  color    String
+  imageUrl String?
+  size     TokenSize @default(MEDIUM)
+  col      Int
+  row      Int
+  // Nascosta ai giocatori (mostri in agguato)
+  hidden   Boolean   @default(false)
+  // Solo per mostri e PNG: i PF li vede solo il master
+  hp       Int?
+  maxHp    Int?
+
+  mapId       String
+  map         GameMap    @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  characterId String?
+  character   Character? @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@index([mapId])
+  @@map("map_token")
+}
+
 // ─── Personaggi ──────────────────────────────────────────────────
 
 model Character {
@@ -302,6 +379,7 @@ model Character {
 
   editRequests EditRequest[]
   rolls        Roll[]
+  mapTokens    MapToken[]
 
   @@index([ownerId])
   @@index([campaignId])

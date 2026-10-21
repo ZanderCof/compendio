@@ -137,6 +137,16 @@
   --sidebar-ring: var(--palette-violet);
 }
 
+/* Sessione con mappa su telefono e tablet: occupa lo schermo, niente scroll della pagina né footer */
+@media (width < 64rem) {
+  body:has([data-session-fullscreen]) {
+    overflow: hidden;
+  }
+  body:has([data-session-fullscreen]) footer {
+    display: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
