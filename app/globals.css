@@ -243,3 +243,55 @@ html.theme-switching::view-transition-group(site-header) {
     animation-delay: 0s !important;
   }
 }
+
+/* ─── Home ─────────────────────────────────────────────────────── */
+
+/* Parola evidenziata del titolo: gradiente della palette che scorre lentamente */
+.text-gradient-pan {
+  background-image: linear-gradient(90deg, var(--palette-plum), var(--palette-violet), var(--palette-sky), var(--palette-aqua), var(--palette-violet), var(--palette-plum));
+  background-size: 200% auto;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 8s linear infinite;
+}
+
+/* Banner finale: gradiente che si muove piano */
+.banner-animated {
+  background-image: linear-gradient(120deg, var(--palette-plum), var(--palette-violet), var(--palette-periwinkle), var(--palette-violet), var(--palette-plum));
+  background-size: 300% 300%;
+  animation: gradient-pan 16s ease-in-out infinite alternate;
+}
+
+/* Grana: rumore SVG, nessuna immagine da scaricare */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes gradient-pan {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+/* Link con sottolineatura che si allarga */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 250ms ease, color 150ms ease;
+}
+.link-underline:hover,
+.link-underline:focus-visible {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-gradient-pan,
+  .banner-animated {
+    animation: none;
+  }
+}
