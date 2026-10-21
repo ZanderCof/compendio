@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { createMap, deleteMap, fetchMaps, renameMap, setActiveMap } from "@/features/maps/actions"
-import type { MapSummary } from "@/features/maps/queries"
+import type { MapSummary, MapView } from "@/features/maps/queries"
 import type { UploadMode } from "@/features/maps/upload"
 import { checkImageFile, readImageSize, uploadErrorMessage, uploadMapImage } from "./uploadImage"
 
@@ -197,13 +197,16 @@ export function MapLibrary({
   open,
   onOpenChange,
   onChanged,
+  onActiveMap,
 }: {
   campaignId: string
   uploadMode: UploadMode | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Dopo ogni modifica alla mappa in uso: la sessione si aggiorna subito */
+  /** Dopo una modifica che può cambiare la mappa in uso: la sessione si riallinea col server */
   onChanged: () => void
+  /** La mappa in uso è cambiata: la sessione la mostra subito, senza aspettare il polling */
+  onActiveMap: (map: MapView | null) => void
 }) {
   const [maps, setMaps] = useState<MapSummary[] | null>(null)
 
@@ -267,14 +270,23 @@ export function MapLibrary({
                     )
                   }
                   onActivate={async (active) => {
+                    // "Togli": la vista cambia subito, prima della risposta del server
+                    if (!active) onActiveMap(null)
+                    let activated: MapView | null | undefined
                     const ok = await optimistic(
                       (list) => list.map((m) => ({ ...m, active: active ? m.id === map.id : false })),
-                      () => setActiveMap(campaignId, active ? map.id : null)
+                      async () => {
+                        const result = await setActiveMap(campaignId, active ? map.id : null)
+                        activated = result.map
+                        return result
+                      }
                     )
-                    // Usa e Togli fanno la stessa cosa: chiudono il pannello per mostrare il risultato
                     if (ok) {
-                      onChanged()
+                      // "Usa": la mappa arriva con la risposta, niente attesa del polling
+                      if (active) onActiveMap(activated ?? null)
                       onOpenChange(false)
+                    } else {
+                      onChanged()
                     }
                     return ok
                   }}

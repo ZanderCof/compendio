@@ -99,6 +99,7 @@ export function CalibrationPanel({
         <button
           type="button"
           aria-pressed={drawing}
+          aria-label={drawing ? "Disegna una cella: attivo" : "Disegna una cella: spento"}
           onClick={onToggleDrawing}
           className={cn(
             "flex min-h-12 items-center gap-3 rounded-lg border-2 px-3 py-2 text-left transition-colors",

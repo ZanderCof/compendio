@@ -13,6 +13,7 @@ export type MapView = {
   grid: Grid
   showGrid: boolean
   showObstacles: boolean
+  playersOpenDoors: boolean
   /** Ostacoli: il master li vede sempre, i giocatori solo se il master li mostra */
   layout: MapLayout
   version: number
@@ -33,6 +34,7 @@ const mapSelect = {
   offsetY: true,
   showGrid: true,
   showObstacles: true,
+  playersOpenDoors: true,
   layout: true,
   version: true,
 } as const
@@ -50,6 +52,7 @@ export async function getActiveMap(campaignId: string, viewerIsMaster: boolean):
     grid: { cols: map.cols, rows: map.rows, cellSize: map.cellSize, offsetX: map.offsetX, offsetY: map.offsetY },
     showGrid: map.showGrid,
     showObstacles: map.showObstacles,
+    playersOpenDoors: map.playersOpenDoors,
     layout: viewerIsMaster || map.showObstacles ? parseLayout(map.layout) : emptyLayout(),
     version: map.version,
   }
